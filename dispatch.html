@@ -539,8 +539,8 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
 
 /* ============ SUBS PAGE (full) ============ */
 .subs-wrap{flex:1;padding:12px 14px;overflow-y:auto}
-.subs-grid-head{display:grid;grid-template-columns:28px 2fr 1.5fr 2fr 120px 2fr 80px 90px;gap:10px;align-items:center;padding:6px 12px;background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:6px}
-.sub-card{display:grid;grid-template-columns:28px 2fr 1.5fr 2fr 120px 2fr 80px 90px;gap:10px;align-items:center;background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:5px;font-size:12px;box-shadow:var(--shadow);transition:border-color .08s}
+.subs-grid-head{display:grid;grid-template-columns:28px 2fr 1.5fr 2fr 120px 2fr 90px;gap:10px;align-items:center;padding:6px 12px;background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:6px}
+.sub-card{display:grid;grid-template-columns:28px 2fr 1.5fr 2fr 120px 2fr 90px;gap:10px;align-items:center;background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:5px;font-size:12px;box-shadow:var(--shadow);transition:border-color .08s}
 .sub-card:hover{border-color:var(--silver)}
 .sub-card input{width:100%}
 .sub-card .geo-cell{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:500}
@@ -611,7 +611,6 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
       <button class="tab" data-page="ws">routing</button>
       <button class="tab" data-page="crews">crews</button>
       <button class="tab" data-page="subs">subs</button>
-      <button class="tab" data-page="stats">stats</button>
       <button class="tab" data-page="settings">settings</button>
     </div>
     <div class="topbar-right">
@@ -874,58 +873,6 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
       </div>
     </div>
 
-    <!-- ================= STATS PAGE ================= -->
-    <div class="page" id="page-stats">
-      <div class="sidebar">
-        <div class="sidebar-section">
-          <div class="sidebar-title">calendar</div>
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
-            <button class="btn btn-sm" onclick="statsNavMonth(-1)">&#8592;</button>
-            <span id="statsMonthLabel" style="flex:1;text-align:center;font-size:13px;font-weight:600"></span>
-            <button class="btn btn-sm" onclick="statsNavMonth(1)">&#8594;</button>
-          </div>
-          <div style="display:flex;gap:4px;margin-bottom:6px">
-            <button class="btn btn-sm" onclick="statsSelectAll()">select all</button>
-            <button class="btn btn-sm" onclick="statsClearSelection()">clear</button>
-          </div>
-        </div>
-        <div class="sidebar-section">
-          <div class="sidebar-title">compare</div>
-          <div class="btn-stack">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
-              <button class="btn btn-block" onclick="statsRenderBarCompare()">by day</button>
-              <button class="btn btn-block" onclick="statsRenderBarByTask()">by task</button>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
-              <button class="btn btn-block" onclick="statsRenderBarByWeek()">by week</button>
-              <button class="btn btn-block" onclick="statsOpenMonthPicker()">by month</button>
-            </div>
-            <button class="btn btn-block" onclick="statsAggregateWeek()">aggregate</button>
-          </div>
-        </div>
-        <div class="sidebar-section">
-          <div class="sidebar-title">share</div>
-          <div class="btn-stack">
-            <button class="btn btn-block" onclick="statsExportJSON()">export json</button>
-            <label class="btn btn-block" style="cursor:pointer">import json
-              <input type="file" accept=".json" style="display:none" onchange="statsImportJSON(event)">
-            </label>
-          </div>
-        </div>
-      </div>
-      <div class="content">
-        <div class="content-head">
-          <div class="spacer"></div>
-          <span id="statsSelectionInfo" style="font-size:11px;color:var(--muted)"></span>
-        </div>
-        <div class="content-body">
-          <div id="statsCalGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:12px"></div>
-          <div id="statsChartArea" style="margin-bottom:12px"></div>
-          <div id="statsDayDetail"></div>
-        </div>
-      </div>
-    </div>
-
     <!-- ================= SETTINGS PAGE ================= -->
     <div class="page" id="page-settings">
       <div class="content" style="flex:1">
@@ -1109,28 +1056,6 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
   </div>
 </div>
 
-<!-- STATS MONTH PICKER -->
-<div class="modal-bg" id="statsMonthPickerBg" role="dialog" aria-modal="true" aria-label="select months">
-  <div class="modal" style="width:420px;max-width:94vw">
-    <div class="modal-head">
-      <span>select months</span>
-      <button class="close" type="button" onclick="$('#statsMonthPickerBg').classList.remove('on')" aria-label="close">×</button>
-    </div>
-    <div style="padding:16px 20px 20px">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5">Toggle months to auto-fill the calendar. Then deselect individual days before viewing the chart.</div>
-      <div id="statsMonthPills" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px"></div>
-      <div style="display:flex;gap:6px;margin-bottom:18px">
-        <button class="btn btn-sm" onclick="_statsMonthPickAll()">select all</button>
-        <button class="btn btn-sm" onclick="_statsMonthPickNone()">clear</button>
-      </div>
-      <div style="display:flex;gap:8px;justify-content:flex-end">
-        <button class="btn btn-ghost" onclick="$('#statsMonthPickerBg').classList.remove('on')">cancel</button>
-        <button class="btn btn-primary" onclick="_applyMonthPick()">apply &amp; view chart</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- CFF CALC REQUESTS MODAL -->
 <div class="modal-bg" id="cffBg" role="dialog" aria-modal="true" aria-label="CFF calc requests">
   <div class="modal" style="width:560px;max-width:94vw">
@@ -1146,39 +1071,6 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
       <button class="btn" id="cffDownload" onclick="cffDownload()" style="margin-right:auto">download .txt</button>
       <button class="btn btn-ghost" onclick="closeCffModal()">close</button>
       <button class="btn btn-primary" id="cffCopy" onclick="cffCopy()">copy</button>
-    </div>
-  </div>
-</div>
-
-<!-- SNAPSHOT DATE MODAL -->
-<div class="modal-bg" id="snapshotModalBg" role="dialog" aria-modal="true" aria-label="save snapshot">
-  <div class="modal" style="width:360px;max-width:94vw">
-    <div class="modal-head">
-      <span id="snapshotModalTitle">save dispatch snapshot</span>
-      <button class="close" type="button" id="snapshotModalClose" aria-label="close">×</button>
-    </div>
-    <div style="padding:18px 20px 20px">
-      <!-- page 1: date picker -->
-      <div id="snapshotPage1">
-        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">Select the date this dispatch was sent out.</div>
-        <input type="date" id="snapshotDateInput" style="width:100%;padding:7px 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);font-size:14px;background:var(--bg);color:var(--text);outline:none">
-        <div id="snapshotDateErr" style="font-size:11px;color:var(--red);margin-top:5px;display:none">please select a valid date</div>
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-          <button class="btn btn-ghost" id="snapshotCancelExport">cancel export</button>
-          <button class="btn" id="snapshotSkip">skip snapshot</button>
-          <button class="btn btn-primary" id="snapshotContinue">continue →</button>
-        </div>
-      </div>
-      <!-- page 2: conflict -->
-      <div id="snapshotPage2" style="display:none">
-        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px" id="snapshotConflictDate"></div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.5">A snapshot already exists for this date. How would you like to save?</div>
-        <div style="display:flex;gap:8px;justify-content:flex-end">
-          <button class="btn btn-ghost" id="snapshotBack">← back</button>
-          <button class="btn" id="snapshotSaveCopy">save as copy</button>
-          <button class="btn btn-danger" id="snapshotOverwrite">overwrite</button>
-        </div>
-      </div>
     </div>
   </div>
 </div>
@@ -1275,7 +1167,6 @@ const DEFAULT_DB = {
   subs:[],
   pendingSubReview:[], // one entry per unresolved import sub name; see resolveSubForImport
   sageImport:null,     // {filename,headerLine,importedAt,rows:[{idx,raw,fields}]} — preserves the source CSV for round-trip export
-  dispatchHistory:[],  // [{id,date,copy,exportedAt,crews,taskCounts,totalJobs}]
   geocache:{},
   osrmRoutes:{},  // cache of OSRM road geometries keyed by crew+stop list — persists with DB
   settings:{
@@ -2382,7 +2273,7 @@ function renderWsTimeline(){
    ============================================================ */
 // inject icons into tabs
 (function(){
-  const tabIcons={import:'upload',run:'board',ws:'route',crews:'users',subs:'homes',stats:'bar',settings:'settings'};
+  const tabIcons={import:'upload',run:'board',ws:'route',crews:'users',subs:'homes',settings:'settings'};
   $$('.tab').forEach(t=>{
     const name=tabIcons[t.dataset.page];
     const label=t.textContent.trim();
@@ -2415,7 +2306,6 @@ $$('.tab').forEach(t=>t.addEventListener('click',()=>{
   if(t.dataset.page==='crews') renderCrews();
   if(t.dataset.page==='import') renderImport();
   if(t.dataset.page==='subs') renderSubsPage();
-  if(t.dataset.page==='stats') renderStatsPage();
   if(t.dataset.page==='settings') renderSettings();
 }));
 
@@ -4772,7 +4662,6 @@ async function exportToSage(){
     : `${mm}/${dd}`;
   const doRoutePDFs=DB.settings.routeCardPDF!==false;
   toast(`exported ${assigned} rows${cffEntries.length?' + CFF report':''}${doRoutePDFs&&DB.crews.some(c=>c.active&&DB.jobs.some(j=>j.crew===c.id&&j.lat!=null))?' · generating route cards…':''}`);
-  if(snapshotDate) dispatchSnapshotWrite({date:snapshotDate,mode:'new'});
   // Auto-backup: every successful Sage export also writes a full DB
   // snapshot next to it — the real insurance behind localStorage.
   try{
@@ -5480,100 +5369,6 @@ async function _buildTileMap(p,allPts,stopPts,pxW,pxH){
   return oc.toDataURL('image/jpeg',0.95);
 }
 
-function dispatchSnapshotPrompt(){
-  return new Promise(resolve=>{
-    const today=new Date().toISOString().slice(0,10);
-    const bg=$('#snapshotModalBg');
-    const page1=$('#snapshotPage1');
-    const page2=$('#snapshotPage2');
-    const dateInput=$('#snapshotDateInput');
-    const dateErr=$('#snapshotDateErr');
-
-    // reset to page 1
-    dateInput.value=today;
-    dateInput.style.borderColor='';
-    dateErr.style.display='none';
-    page1.style.display='';
-    page2.style.display='none';
-    bg.classList.add('on');
-    setTimeout(()=>dateInput.focus(),50);
-
-    function close(result){ bg.classList.remove('on'); resolve(result); }
-
-    $('#snapshotModalClose').onclick=()=>close(null);
-    $('#snapshotCancelExport').onclick=()=>close(null);
-    $('#snapshotSkip').onclick=()=>close('');
-
-    $('#snapshotContinue').onclick=()=>{
-      const dateStr=dateInput.value;
-      if(!dateStr){
-        dateInput.style.borderColor='var(--red)';
-        dateErr.style.display='';
-        return;
-      }
-      dateInput.style.borderColor='';
-      dateErr.style.display='none';
-      const existing=(DB.dispatchHistory||[]).filter(e=>e.date===dateStr);
-      if(!existing.length){ close({date:dateStr,mode:'new'}); return; }
-      // show conflict page
-      $('#snapshotConflictDate').textContent=dateStr;
-      page1.style.display='none';
-      page2.style.display='';
-    };
-
-    dateInput.onkeydown=e=>{ if(e.key==='Enter') $('#snapshotContinue').click(); };
-
-    $('#snapshotBack').onclick=()=>{ page2.style.display='none'; page1.style.display=''; };
-    $('#snapshotSaveCopy').onclick=()=>close({date:dateInput.value,mode:'copy'});
-
-    $('#snapshotOverwrite').onclick=async()=>{
-      bg.classList.remove('on');
-      const ok=await dialog.confirm({
-        title:`overwrite snapshot for ${dateInput.value}`,
-        body:'The existing snapshot for this date will be permanently replaced.',
-        danger:true, confirmLabel:'overwrite'
-      });
-      if(ok){ resolve({date:dateInput.value,mode:'overwrite'}); }
-      else { bg.classList.add('on'); }
-    };
-  });
-}
-
-function dispatchSnapshotWrite(info){
-  if(!info||!info.date) return;
-  if(!Array.isArray(DB.dispatchHistory)) DB.dispatchHistory=[];
-  const history=DB.dispatchHistory;
-  const assignedJobs=DB.jobs.filter(j=>j.crew);
-  const unassignedJobs=DB.jobs.filter(j=>!j.crew);
-  const typeCounts={};
-  const mupCounts={};
-  const unassignedTypeCounts={};
-  for(const j of assignedJobs){
-    const k=(j.type||'MISC').toUpperCase();
-    typeCounts[k]=(typeCounts[k]||0)+1;
-    if(j.townhome) mupCounts[k]=(mupCounts[k]||0)+1;
-  }
-  for(const j of unassignedJobs){
-    const k=_LEGACY_TYPE_MAP[(j.type||'MISC').toUpperCase()]||(j.type||'MISC').toUpperCase();
-    unassignedTypeCounts[k]=(unassignedTypeCounts[k]||0)+1;
-  }
-  const crewsSnap=DB.crews.filter(c=>c.active).map(c=>({
-    id:c.id, name:c.name,
-    jobs:assignedJobs.filter(j=>j.crew===c.id).map(j=>({id:j.id,type:j.type,sub:j.sub,address:j.address,mup:!!j.townhome}))
-  }));
-  if(info.mode==='overwrite'){
-    const idx=history.findIndex(e=>e.date===info.date);
-    const copy=idx>=0?(history[idx].copy||1):1;
-    const snap={id:uid(),date:info.date,copy,exportedAt:Date.now(),crews:crewsSnap,taskCounts:typeCounts,mupCounts,totalJobs:assignedJobs.length,unassignedCount:unassignedJobs.length,unassignedTypeCounts};
-    if(idx>=0) history.splice(idx,1,snap); else history.push(snap);
-  } else {
-    const maxCopy=Math.max(0,...history.filter(e=>e.date===info.date).map(e=>e.copy||1));
-    history.push({id:uid(),date:info.date,copy:maxCopy+1,exportedAt:Date.now(),crews:crewsSnap,taskCounts:typeCounts,mupCounts,totalJobs:assignedJobs.length,unassignedCount:unassignedJobs.length,unassignedTypeCounts});
-  }
-  save(true);
-  ilog(`snapshot saved for ${info.date}`,'ok');
-}
-
 /* ============================================================
    RENDER
    ============================================================ */
@@ -5581,18 +5376,14 @@ function render(){
   renderImport();
   renderRun();
   renderCrews();
-  renderStats();
+  renderCounters();
   renderSubsPage();
   renderResolutionPage();
 }
-function renderStats(){
+function renderCounters(){
   const set=(sel,val)=>{const el=$(sel);if(el)el.textContent=val;};
   set('#impTotal',DB.jobs.length);
   set('#impGeo',DB.jobs.filter(j=>j.lat!=null).length);
-  set('#statCrews',DB.crews.filter(c=>c.active).length);
-  set('#statJobs',DB.jobs.length);
-  set('#statAsn',DB.jobs.filter(j=>j.crew).length);
-  set('#statDef',DB.jobs.filter(j=>!j.crew&&j.lat!=null).length);
   set('#cacheCount',Object.keys(DB.geocache).length);
 }
 
@@ -5654,7 +5445,7 @@ function renderImportStatsBar(){
 }
 
 function renderImport(){
-  renderStats();
+  renderCounters();
   renderImportStatsBar();
   const ddi=$('#dispatchDateInput');
   if(ddi && ddi.value !== (DB.settings.dispatchDate||'')) ddi.value=DB.settings.dispatchDate||'';
@@ -5774,7 +5565,7 @@ function formatSageDate(raw){
 let runSelection = {source:null, ids:new Set()}; // source: crewId or 'unassigned'
 
 function renderRun(){
-  renderStats();
+  renderCounters();
   renderRunStatsBar();
   const board=$('#crewBoard');
   board.innerHTML='';
@@ -6417,12 +6208,12 @@ function renderCrews(){
     el.addEventListener('click',()=>{
       const c=DB.crews.find(x=>x.id===el.dataset.id);
       if(!c.active){
-        c.active=true;save();renderCrews();renderStats();
+        c.active=true;save();renderCrews();renderCounters();
         return;
       }
       const assigned=DB.jobs.filter(j=>j.crew===c.id);
       if(!assigned.length){
-        c.active=false;c.locked=false;save();renderCrews();renderStats();
+        c.active=false;c.locked=false;save();renderCrews();renderCounters();
         return;
       }
       dialog.confirm({
@@ -6486,7 +6277,7 @@ function renderCrews(){
       DB.crews=DB.crews.filter(c=>c.id!==delId);
       matrixService.invalidateMatrix(`crew ${c?c.name:'?'} deleted`);
       invalidateRouteCacheForCrews([delId]);
-      save();renderCrews();renderStats();
+      save();renderCrews();renderCounters();
       if(orphaned) ilog(`${orphaned} job${orphaned===1?'':'s'} unassigned from deleted crew "${c?c.name:'?'}"`, 'ok');
     });
   });
@@ -6584,201 +6375,7 @@ async function r4mPrioReset(){
   save(); renderR4mPriority();
 }
 
-/* ============================================================
-   STATS PAGE
-   ============================================================ */
-let _statsCalDate = new Date(); // current month being displayed
-let _statsSelection = []; // ordered array of YYYY-MM-DD strings
-let _statsActiveChart = null; // last-rendered chart fn — re-called when selection changes
-
-function _statsDateKey(d){ return d.toISOString().slice(0,10); }
-function _statsKeyToDate(k){ const [y,m,d]=k.split('-').map(Number); return new Date(y,m-1,d); }
-
-function statsNavMonth(dir){
-  _statsCalDate=new Date(_statsCalDate.getFullYear(), _statsCalDate.getMonth()+dir, 1);
-  renderStatsCalendar();
-}
-function statsSelectAll(){
-  const history=DB.dispatchHistory||[];
-  _statsSelection=[...new Set(history.map(e=>e.date))].sort();
-  renderStatsCalendar();
-  statsRenderSelectionInfo();
-}
-function statsClearSelection(){
-  _statsSelection=[];
-  _statsActiveChart=null;
-  renderStatsCalendar();
-  statsRenderSelectionInfo();
-  $('#statsChartArea').innerHTML='';
-  $('#statsDayDetail').innerHTML='';
-}
-function statsRenderSelectionInfo(){
-  const el=$('#statsSelectionInfo');
-  if(el) el.textContent=_statsSelection.length?`${_statsSelection.length} day${_statsSelection.length===1?'':'s'} selected`:'';
-}
-
-function renderStatsPage(){
-  renderStatsCalendar();
-  statsRenderSelectionInfo();
-}
-
-function renderStatsCalendar(){
-  const cal=$('#statsCalGrid');
-  const label=$('#statsMonthLabel');
-  if(!cal) return;
-  const year=_statsCalDate.getFullYear(), month=_statsCalDate.getMonth();
-  if(label) label.textContent=_statsCalDate.toLocaleDateString([],{month:'long',year:'numeric'});
-  cal.innerHTML='';
-  // day headers
-  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d=>{
-    const h=document.createElement('div');
-    h.style.cssText='font-size:11px;font-weight:700;text-align:center;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:2px';
-    h.textContent=d; cal.appendChild(h);
-  });
-  const firstDay=new Date(year,month,1).getDay();
-  const daysInMonth=new Date(year,month+1,0).getDate();
-  const history=DB.dispatchHistory||[];
-  const byDate={};
-  for(const e of history){
-    if(!byDate[e.date]) byDate[e.date]=[];
-    byDate[e.date].push(e);
-  }
-  // leading blanks
-  for(let i=0;i<firstDay;i++){
-    const b=document.createElement('div'); cal.appendChild(b);
-  }
-  for(let d=1;d<=daysInMonth;d++){
-    const dateKey=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const entries=byDate[dateKey]||[];
-    const hasData=entries.length>0;
-    const selected=_statsSelection.includes(dateKey);
-    const cell=document.createElement('div');
-    cell.style.cssText=`min-height:42px;border:1px solid ${selected?'var(--blue)':'var(--border)'};border-radius:4px;padding:3px;cursor:${hasData?'pointer':'default'};background:${selected?'var(--blue-wash)':hasData?'var(--bg-panel)':'var(--bg-soft)'}`;
-    const dayNum=document.createElement('div');
-    dayNum.style.cssText='font-size:10px;font-weight:700;color:var(--muted);margin-bottom:1px';
-    dayNum.textContent=d;
-    cell.appendChild(dayNum);
-    if(hasData){
-      const latestEntry=entries.reduce((a,b)=>(b.copy||1)>(a.copy||1)?b:a);
-      const totalJobs=latestEntry.totalJobs||0;
-      const copies=entries.length;
-      const totEl=document.createElement('div');
-      totEl.style.cssText='font-size:11px;font-weight:700;color:var(--text)';
-      totEl.textContent=totalJobs+(copies>1?` +${copies-1}`:'');
-      cell.appendChild(totEl);
-      // mini task pills
-      const tc={};for(const [k,v] of Object.entries(latestEntry.taskCounts||{})){const n=_LEGACY_TYPE_MAP[k.toUpperCase()]||k;tc[n]=(tc[n]||0)+v;}
-      const types=DB.settings.taskTypes||[];
-      const pillWrap=document.createElement('div');
-      pillWrap.style.cssText='display:flex;flex-wrap:wrap;gap:1px;margin-top:2px';
-      for(const t of types.slice(0,4)){
-        if(!tc[t.name]) continue;
-        const p=document.createElement('div');
-        p.style.cssText=`width:10px;height:10px;border-radius:2px;background:${t.color}`;
-        p.title=`${t.name}: ${tc[t.name]}`;
-        pillWrap.appendChild(p);
-      }
-      cell.appendChild(pillWrap);
-      if(latestEntry.unassignedCount!=null){
-        const uEl=document.createElement('div');
-        uEl.style.cssText='font-size:10px;color:var(--muted);margin-top:2px';
-        uEl.textContent=`↓${latestEntry.unassignedCount}`;
-        uEl.title=`${latestEntry.unassignedCount} unassigned (${latestEntry.unassignedTypeCounts?.['BENCHMARK']||0} benchmarks)`;
-        cell.appendChild(uEl);
-      }
-      cell.addEventListener('click',()=>{
-        const idx=_statsSelection.indexOf(dateKey);
-        if(idx>=0) _statsSelection.splice(idx,1);
-        else _statsSelection.push(dateKey);
-        _statsSelection.sort();
-        renderStatsCalendar();
-        statsRenderSelectionInfo();
-        statsRenderDayDetail(dateKey, entries);
-        if(_statsActiveChart) _statsActiveChart();
-      });
-    }
-    cal.appendChild(cell);
-  }
-}
-
-function statsRenderDayDetail(dateKey, entries){
-  const wrap=$('#statsDayDetail');
-  if(!wrap) return;
-  wrap.innerHTML=`<h3 style="font-size:14px;font-weight:700;margin-bottom:10px">${dateKey}</h3>`;
-  for(const e of entries){
-    const card=document.createElement('div');
-    card.style.cssText='border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:8px;background:var(--bg-panel)';
-    const _norm=k=>_LEGACY_TYPE_MAP[k.toUpperCase()]||k;
-    const tc={},mc={};
-    for(const [k,v] of Object.entries(e.taskCounts||{})){const n=_norm(k);tc[n]=(tc[n]||0)+v;}
-    for(const [k,v] of Object.entries(e.mupCounts||{})) {const n=_norm(k);mc[n]=(mc[n]||0)+v;}
-    const types=DB.settings.taskTypes||[];
-    const pills=types.filter(t=>tc[t.name]).map(t=>{
-      const mup=mc[t.name]||0;
-      const mupBadge=mup?` <span style="font-size:10.5px;opacity:.75">(${mup}M)</span>`:'';
-      return `<span style="display:inline-flex;align-items:center;gap:3px;font-size:12px;background:${t.color}22;border:1px solid ${t.color}44;border-radius:3px;padding:2px 7px"><span style="width:8px;height:8px;border-radius:2px;background:${t.color};display:inline-block"></span>${tc[t.name]} ${esc(t.name)}${mupBadge}</span>`;
-    }).join(' ');
-    // crew breakdown
-    const crewRows=(e.crews||[]).filter(c=>c.jobs&&c.jobs.length).map(c=>{
-      const ctc={};
-      for(const j of c.jobs){ const n=_norm((j.type||'MISC').toUpperCase()); ctc[n]=(ctc[n]||0)+1; }
-      const dots=types.filter(t=>ctc[t.name]).map(t=>`<span style="display:inline-flex;align-items:center;gap:2px;font-size:10.5px;color:${t.color};white-space:nowrap"><span style="width:7px;height:7px;border-radius:2px;background:${t.color};display:inline-block;flex-shrink:0"></span>${ctc[t.name]}</span>`).join('<span style="color:var(--border);margin:0 3px">·</span>');
-      return `<tr>
-        <td style="padding:3px 8px 3px 0;font-size:11.5px;font-weight:600;color:var(--navy);white-space:nowrap">${esc(c.name)}</td>
-        <td style="padding:3px 10px 3px 0;font-size:11px;color:var(--muted);white-space:nowrap">${c.jobs.length} job${c.jobs.length===1?'':'s'}</td>
-        <td style="padding:3px 0;font-size:11px">${dots}</td>
-      </tr>`;
-    }).join('');
-    card.innerHTML=`
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px">
-        <div style="font-size:12px;color:var(--muted)">exported ${new Date(e.exportedAt).toLocaleString()} · copy ${e.copy||1}</div>
-        <button data-del-id="${esc(e.id)}" class="btn-ghost" style="padding:1px 4px;font-size:10px;color:var(--muted);flex-shrink:0" title="delete this copy">delete</button>
-      </div>
-      <div style="margin-bottom:6px">${pills||'no tasks'}</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:${e.unassignedCount!=null?'4':'8'}px">${e.totalJobs||0} assigned jobs</div>
-      ${e.unassignedCount!=null?`<div style="font-size:12px;color:var(--muted);margin-bottom:8px">${e.unassignedCount} unassigned · ${e.unassignedTypeCounts?.['BENCHMARK']||0} benchmarks · ${e.unassignedCount-(e.unassignedTypeCounts?.['BENCHMARK']||0)} production</div>`:''}
-      ${crewRows?`<div style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px"><table style="border-collapse:collapse;width:100%">${crewRows}</table></div>`:''}`;
-    card.querySelector('[data-del-id]').addEventListener('click',()=>{
-      DB.dispatchHistory=(DB.dispatchHistory||[]).filter(h=>h.id!==e.id);
-      save();
-      renderStatsCalendar();
-      const remaining=(DB.dispatchHistory||[]).filter(h=>h.date===dateKey);
-      if(remaining.length) statsRenderDayDetail(dateKey,remaining);
-      else{ const wd=$('#statsDayDetail'); if(wd) wd.innerHTML=''; }
-    });    wrap.appendChild(card);
-  }
-}
-
-const _LEGACY_TYPE_MAP={'GRADE':'GRADE STAKE','ENV':'ENVELOPE','LGV':'LOT GRADE V','FINALS':'FINAL'};
-function _statsAggregateDays(dates){
-  const history=DB.dispatchHistory||[];
-  const norm=k=>_LEGACY_TYPE_MAP[k.toUpperCase()]||k;
-  return dates.map(date=>{
-    const entries=history.filter(e=>e.date===date);
-    const tc={}, mc={};
-    for(const e of entries){
-      for(const [k,v] of Object.entries(e.taskCounts||{})){const n=norm(k);tc[n]=(tc[n]||0)+v;}
-      for(const [k,v] of Object.entries(e.mupCounts||{})) {const n=norm(k);mc[n]=(mc[n]||0)+v;}
-    }
-    return {date,tc,mc};
-  });
-}
-
-function _mupBar(x,barW,h,maxVal,v,mv,color,label){
-  if(!v) return '';
-  const bh=Math.round((v/maxVal)*h);
-  const mbh=mv?Math.round((mv/maxVal)*h):0;
-  let out=`<rect x="${x}" y="${h-bh}" width="${barW}" height="${bh}" fill="${color}" opacity="0.82" rx="2"><title>${label}: ${v}${mv?' ('+mv+' MUP)':''}</title></rect>`;
-  if(mbh) out+=`<rect x="${x}" y="${h-bh}" width="${barW}" height="${mbh}" fill="${color}" opacity="0.38" rx="2"><title>MUP: ${mv}</title></rect>`;
-  out+=`<text x="${x+barW/2}" y="${h-bh-2}" text-anchor="middle" font-size="10" fill="var(--muted)">${v}</text>`;
-  return out;
-}
-
-function _getWeekStart(dateStr){
-  const d=new Date(dateStr+'T00:00:00');
-  d.setDate(d.getDate()-d.getDay()); // back to Sunday
-  return d.toISOString().slice(0,10);
-}
+/* ---------- DATE HELPERS ---------- */
 function _parseDate(str){
   if(!str) return null;
   const s=str.trim();
@@ -6851,229 +6448,6 @@ function jobPriorityScore(j,todayStr){
   return 4;
 }
 
-function _statsRenderGroupedBars(groups){
-  const chart=$('#statsChartArea');
-  if(!chart) return;
-  if(!groups.length){ chart.innerHTML='<div class="empty">no data for selection</div>'; return; }
-  const types=DB.settings.taskTypes||[];
-  const activeTypes=types.filter(t=>groups.some(g=>(g.tc[t.name]||0)>0));
-  const maxVal=Math.max(1,...groups.flatMap(g=>Object.values(g.tc)));
-  const barW=30, gap=3, groupGap=20, h=180, topPad=18;
-  const svgW=(groups.length*(activeTypes.length*(barW+gap)+groupGap))+groupGap;
-  let bars='', labels='';
-  let x=groupGap;
-  for(const g of groups){
-    for(const t of activeTypes){
-      bars+=_mupBar(x,barW,h,maxVal,g.tc[t.name]||0,g.mc[t.name]||0,t.color,`${g.label} ${t.name}`);
-      x+=barW+gap;
-    }
-    labels+=`<text x="${x-((activeTypes.length*(barW+gap))/2)}" y="${h+14}" text-anchor="middle" font-size="11" fill="var(--muted)">${esc(g.label)}</text>`;
-    x+=groupGap;
-  }
-  chart.innerHTML=`<div style="overflow-x:auto"><svg width="${svgW}" height="${h+28+topPad}" style="display:block"><g transform="translate(0,${topPad})">${bars}${labels}</g></svg></div>`;
-}
-
-function statsRenderBarCompare(){
-  _statsActiveChart=statsRenderBarCompare;
-  if(!_statsSelection.length){ $('#statsChartArea').innerHTML='<div class="empty">select days on the calendar first</div>'; return; }
-  const days=_statsAggregateDays(_statsSelection);
-  _statsRenderGroupedBars(days.map(d=>({label:d.date.slice(5),tc:d.tc,mc:d.mc})));
-}
-
-function statsRenderBarByWeek(){
-  _statsActiveChart=statsRenderBarByWeek;
-  if(!_statsSelection.length){ $('#statsChartArea').innerHTML='<div class="empty">select days on the calendar first</div>'; return; }
-  const days=_statsAggregateDays(_statsSelection);
-  const wMap=new Map();
-  for(const d of days){
-    const ws=_getWeekStart(d.date);
-    if(!wMap.has(ws)) wMap.set(ws,{tc:{},mc:{}});
-    const g=wMap.get(ws);
-    for(const [k,v] of Object.entries(d.tc)) g.tc[k]=(g.tc[k]||0)+v;
-    for(const [k,v] of Object.entries(d.mc)) g.mc[k]=(g.mc[k]||0)+v;
-  }
-  const groups=[...wMap.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([ws,g])=>{
-    const d=new Date(ws+'T00:00:00');
-    return {label:`${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`, tc:g.tc, mc:g.mc};
-  });
-  _statsRenderGroupedBars(groups);
-}
-
-function statsRenderBarByMonth(){
-  _statsActiveChart=statsRenderBarByMonth;
-  if(!_statsSelection.length){ $('#statsChartArea').innerHTML='<div class="empty">select days on the calendar first</div>'; return; }
-  const days=_statsAggregateDays(_statsSelection);
-  const mMap=new Map();
-  for(const d of days){
-    const mk=d.date.slice(0,7);
-    if(!mMap.has(mk)) mMap.set(mk,{tc:{},mc:{}});
-    const g=mMap.get(mk);
-    for(const [k,v] of Object.entries(d.tc)) g.tc[k]=(g.tc[k]||0)+v;
-    for(const [k,v] of Object.entries(d.mc)) g.mc[k]=(g.mc[k]||0)+v;
-  }
-  const groups=[...mMap.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([mk,g])=>{
-    const d=new Date(mk+'-01T00:00:00');
-    return {label:d.toLocaleDateString([],{month:'short',year:'2-digit'}), tc:g.tc, mc:g.mc};
-  });
-  _statsRenderGroupedBars(groups);
-}
-
-let _statsMonthPickSel=new Set();
-function statsOpenMonthPicker(){
-  const history=DB.dispatchHistory||[];
-  const months=[...new Set(history.map(e=>e.date.slice(0,7)))].sort();
-  if(!months.length){ toast('no history data',1); return; }
-  _statsMonthPickSel=new Set(months);
-  const el=$('#statsMonthPills'); el.innerHTML='';
-  for(const m of months){
-    const d=new Date(m+'-01T00:00:00');
-    const btn=document.createElement('button');
-    btn.dataset.m=m;
-    btn.textContent=d.toLocaleDateString([],{month:'short',year:'numeric'});
-    btn.style.cssText='padding:5px 13px;border-radius:16px;font-size:12px;font-weight:600;cursor:pointer;transition:background .1s,color .1s';
-    function setActive(b,on){ b.style.background=on?'var(--blue-wash)':'var(--bg-soft)'; b.style.color=on?'var(--blue)':'var(--muted)'; b.style.border=on?'1px solid var(--blue)':'1px solid var(--border)'; }
-    setActive(btn,true);
-    btn.addEventListener('click',()=>{
-      const on=_statsMonthPickSel.has(m);
-      on?_statsMonthPickSel.delete(m):_statsMonthPickSel.add(m);
-      setActive(btn,!on);
-    });
-    el.appendChild(btn);
-  }
-  $('#statsMonthPickerBg').classList.add('on');
-}
-function _statsMonthPickAll(){
-  _statsMonthPickSel=new Set([...$('#statsMonthPills').querySelectorAll('[data-m]')].map(b=>b.dataset.m));
-  $('#statsMonthPills').querySelectorAll('[data-m]').forEach(b=>{ b.style.background='var(--blue-wash)'; b.style.color='var(--blue)'; b.style.border='1px solid var(--blue)'; });
-}
-function _statsMonthPickNone(){
-  _statsMonthPickSel.clear();
-  $('#statsMonthPills').querySelectorAll('[data-m]').forEach(b=>{ b.style.background='var(--bg-soft)'; b.style.color='var(--muted)'; b.style.border='1px solid var(--border)'; });
-}
-function _applyMonthPick(){
-  if(!_statsMonthPickSel.size){ toast('select at least one month',1); return; }
-  const history=DB.dispatchHistory||[];
-  const dates=new Set(history.filter(e=>_statsMonthPickSel.has(e.date.slice(0,7))).map(e=>e.date));
-  _statsSelection=[...dates].sort();
-  $('#statsMonthPickerBg').classList.remove('on');
-  renderStatsCalendar();
-  statsRenderSelectionInfo();
-  statsRenderBarByMonth();
-}
-
-function statsRenderBarByTask(){
-  _statsActiveChart=statsRenderBarByTask;
-  const chart=$('#statsChartArea');
-  if(!chart) return;
-  if(_statsSelection.length<1){ chart.innerHTML='<div class="empty">select days first</div>'; return; }
-  const types=DB.settings.taskTypes||[];
-  const days=_statsAggregateDays(_statsSelection);
-  const activeTypes=types.filter(t=>days.some(d=>(d.tc[t.name]||0)>0));
-  const maxVal=Math.max(1,...days.flatMap(d=>Object.values(d.tc)));
-  const nDays=days.length;
-  const barW=nDays<=2?40:nDays<=4?28:18, gap=3, groupGap=24, h=180, labelH=52, topPad=18;
-  const groupW=nDays*(barW+gap);
-  const svgW=(activeTypes.length*(groupW+groupGap))+groupGap;
-  let bars='', labels='';
-  let x=groupGap;
-  for(const t of activeTypes){
-    const gx=x;
-    for(let i=0;i<nDays;i++){
-      const day=days[i];
-      bars+=_mupBar(x,barW,h,maxVal,day.tc[t.name]||0,day.mc[t.name]||0,t.color,`${day.date} · ${t.name}`);
-      const lx=x+barW/2, ly=h+5;
-      labels+=`<text x="${lx}" y="${ly}" text-anchor="end" font-size="9.5" fill="var(--muted)" transform="rotate(-45,${lx},${ly})">${day.date.slice(5)}</text>`;
-      x+=barW+gap;
-    }
-    const midX=gx+groupW/2;
-    const ty=h+labelH+4;
-    labels+=`<text x="${midX}" y="${ty}" text-anchor="end" font-size="11" font-weight="700" fill="${t.color}" transform="rotate(-35,${midX},${ty})">${esc(t.name)}</text>`;
-    x+=groupGap;
-  }
-  chart.innerHTML=`<div style="overflow-x:auto"><svg width="${svgW}" height="${h+labelH+18+topPad}" style="display:block"><g transform="translate(0,${topPad})">${bars}${labels}</g></svg></div>`;
-}
-
-
-function statsAggregateWeek(){
-  _statsActiveChart=statsAggregateWeek;
-  const chart=$('#statsChartArea');
-  if(!chart) return;
-  if(!_statsSelection.length){ chart.innerHTML='<div class="empty">select days first</div>'; return; }
-  const types=DB.settings.taskTypes||[];
-  const agg=_statsAggregateDays(_statsSelection);
-  const tc={}, mc={};
-  for(const d of agg){
-    for(const [k,v] of Object.entries(d.tc)) tc[k]=(tc[k]||0)+v;
-    for(const [k,v] of Object.entries(d.mc)) mc[k]=(mc[k]||0)+v;
-  }
-  const maxVal=Math.max(1,...Object.values(tc));
-  const barW=36, gap=8, h=180, topPad=18;
-  const svgW=(types.length*(barW+gap))+gap;
-  let bars='', labels='';
-  let x=gap;
-  for(const t of types){
-    bars+=_mupBar(x,barW,h,maxVal,tc[t.name]||0,mc[t.name]||0,t.color,t.name);
-    labels+=`<text x="${x+barW/2}" y="${h+14}" text-anchor="middle" font-size="11" fill="var(--muted)">${esc(t.name.slice(0,4))}</text>`;
-    x+=barW+gap;
-  }
-  chart.innerHTML=`<div style="font-size:13px;color:var(--muted);margin-bottom:6px">aggregate of ${_statsSelection.length} days</div><svg width="${svgW}" height="${h+24+topPad}" style="display:block"><g transform="translate(0,${topPad})">${bars}${labels}</g></svg>`;
-}
-
-function statsExportJSON(){
-  const data={kind:'dispatch-stats',version:1,exportedAt:Date.now(),history:DB.dispatchHistory||[]};
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  const d=new Date().toISOString().slice(0,10);
-  a.download=`dispatch-stats-${d}.json`; // stats stay a plain download (small, ad-hoc)
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-async function statsImportJSON(evt){
-  const file=evt.target.files&&evt.target.files[0];
-  evt.target.value='';
-  if(!file) return;
-  let data;
-  try{ data=JSON.parse(await file.text()); }
-  catch(e){ toast('invalid json',1); return; }
-  if(data.kind!=='dispatch-stats'){ toast('not a dispatch-stats file',1); return; }
-  const incoming=data.history||[];
-  if(!Array.isArray(incoming)||!incoming.length){ toast('empty history',1); return; }
-  const existing=DB.dispatchHistory||[];
-  const byDate=new Map();
-  for(const e of existing) byDate.set(e.date+'_'+e.copy, e);
-  let added=0, skipped=0;
-  for(const entry of incoming){
-    if(!entry||typeof entry.date!=='string'||!entry.date) continue;
-    const key=entry.date+'_'+(entry.copy??1);
-    if(byDate.has(key)){
-      const choice=await dialog.prompt({
-        title:`conflict: ${entry.date} copy ${entry.copy||1}`,
-        body:'overwrite | keep | copy',
-        placeholder:'overwrite',
-        validator:v=>['overwrite','keep','copy'].includes(v.toLowerCase())||'enter overwrite, keep, or copy'
-      });
-      if(!choice||choice.toLowerCase()==='keep'){ skipped++; continue; }
-      if(choice.toLowerCase()==='overwrite'){
-        const idx=existing.findIndex(e=>e.date===entry.date&&e.copy===entry.copy);
-        if(idx>=0) existing.splice(idx,1,entry);
-        added++;
-      } else {
-        const maxCopy=Math.max(0,...existing.filter(e=>e.date===entry.date).map(e=>e.copy||1));
-        existing.push({...entry, copy:maxCopy+1, id:uid()});
-        added++;
-      }
-    } else {
-      existing.push(entry);
-      added++;
-    }
-  }
-  DB.dispatchHistory=existing;
-  save(true);
-  toast(`stats imported: ${added} added, ${skipped} skipped`);
-  renderStatsCalendar();
-}
 function saveAlgoSettings(){
   DB.settings.baselineAvgMin=parseInt($('#setBaseline').value)||45;
   DB.settings.avgMinPerJob=DB.settings.baselineAvgMin; // legacy alias
@@ -7484,7 +6858,7 @@ function renderSubsPage(){
   // header row
   const head=document.createElement('div');
   head.className='subs-grid-head';
-  head.innerHTML=`<div></div><div>name</div><div>nickname</div><div>address</div><div>geocode</div><div>aliases</div><div style="text-align:center">last out</div><div style="text-align:right">jobs</div>`;
+  head.innerHTML=`<div></div><div>name</div><div>nickname</div><div>address</div><div>geocode</div><div>aliases</div><div style="text-align:right">jobs</div>`;
   wrap.appendChild(head);
 
   let sorted=[...DB.subs].sort((a,b)=>a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
@@ -7502,30 +6876,11 @@ function renderSubsPage(){
     return;
   }
 
-  // Pre-compute last dispatched date per sub from dispatch history
-  const lastDispatched=new Map();
-  for(const entry of DB.dispatchHistory||[]){
-    for(const crew of entry.crews||[]){
-      for(const j of crew.jobs||[]){
-        if(j.sub){
-          const prev=lastDispatched.get(j.sub);
-          if(!prev||entry.date>prev) lastDispatched.set(j.sub,entry.date);
-        }
-      }
-    }
-  }
-
   for(const s of sorted){
     const card=document.createElement('div');
     card.className='sub-card';
     const geoOK=s.lat!=null&&s.lon!=null;
     const count=counts[s.name]||0;
-    const lastOut=lastDispatched.get(s.name)||'';
-    const lastOutFmt=lastOut?_fmtShortDate(lastOut)||lastOut:'—';
-    const lastOutColor=lastOut?(()=>{
-      const days=Math.round((new Date()-new Date(lastOut+'T00:00:00'))/(1000*60*60*24));
-      return days>60?'var(--red)':days>30?'#d97706':'var(--muted)';
-    })():'var(--muted)';
     card.innerHTML=`
       <div style="display:flex;justify-content:center">
         <span class="dot ${geoOK?'dot-green':'dot-amber'}"></span>
@@ -7551,7 +6906,6 @@ function renderSubsPage(){
           add alias
         </button>
       </div>
-      <div style="text-align:center;font-size:11px;font-weight:500;color:${lastOutColor}" title="${lastOut||'never dispatched'}">${lastOutFmt}</div>
       <div class="sub-card-actions">
         <span class="count-cell" title="${count} job${count===1?'':'s'} tonight">${count}</span>
         ${geoOK ? `<button class="btn-ghost sub-btn" data-show-on-map="${esc(s.name)}" title="show on map"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 1.5C5.52 1.5 3.5 3.52 3.5 6c0 3.5 4.5 8.5 4.5 8.5S12.5 9.5 12.5 6c0-2.48-2.02-4.5-4.5-4.5zm0 6a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" fill="currentColor"/></svg></button>` : ''}
@@ -8105,7 +7459,6 @@ function openImportOptions(d){
     {key:'subs',           label:'Subs',           desc:'sub list, geocodes &amp; addresses', def:true},
     {key:'crews',          label:'Crews',           desc:'crew list and home addresses',        def:false},
     {key:'jobs',           label:'Jobs',            desc:'current job list',                    def:false},
-    {key:'dispatchHistory',label:'Stats History',   desc:'dispatch snapshots for the stats tab', def:false},
     {key:'settings',       label:'Settings',        desc:'routing params, shift times',         def:false},
     {key:'geocache',       label:'Geocache',        desc:'cached address lookups',              def:false},
   ];
@@ -8146,7 +7499,6 @@ async function applySelectiveImport(){
     else if(k==='subs')       DB.subs=migrated.subs;
     else if(k==='jobs')       DB.jobs=migrated.jobs;
     else if(k==='geocache')   DB.geocache=migrated.geocache||{};
-    else if(k==='dispatchHistory') DB.dispatchHistory=migrated.dispatchHistory||[];
   });
   save(true); render();
   toast(`imported ${label} — ${keys.join(', ')}`);
@@ -8259,13 +7611,6 @@ function migrateData(d){
     Object.assign(result.geocache, d.geocache);
   }
 
-  // dispatch history / stats snapshots
-  if (Array.isArray(d.dispatchHistory)) {
-    result.dispatchHistory = d.dispatchHistory.filter(e =>
-      e && typeof e==='object' && typeof e.date==='string'
-    );
-  }
-
   // pending sub-name review queue (newer backups only)
   if (Array.isArray(d.pendingSubReview)) {
     result.pendingSubReview = d.pendingSubReview.filter(e =>
@@ -8284,7 +7629,7 @@ async function wipeDB(){
 async function clearGeocodeCache(){
   const n=Object.keys(DB.geocache||{}).length;
   if(!await dialog.confirm({title:'clear geocode cache',body:`clear ${n} cached address${n===1?'':'es'}?\nnext time you geocode, addresses will hit Nominatim again.`,confirmLabel:'clear'})) return;
-  DB.geocache={};save();renderStats();toast('cleared');
+  DB.geocache={};save();renderCounters();toast('cleared');
 }
 
 /* ============================================================
@@ -9161,14 +8506,12 @@ function mapFitAssigned(){
     if(panel.contains(e.target)||(pill&&pill.contains(e.target))) return;
     panel.classList.remove('open');
   });
-  // ESC priority: dialog → snapshot modal → shortcuts help → import options → sub resolution modal → activity panel
+  // ESC priority: dialog → CFF modal → shortcuts help → import options → sub resolution modal → activity panel
   document.addEventListener('keydown',e=>{
     if(e.key!=='Escape') return;
     if(dialog.isOpen()){ dialog._onCancel(); return; }
-    const snapBg=document.getElementById('snapshotModalBg');
-    if(snapBg&&snapBg.classList.contains('on')){ document.getElementById('snapshotModalClose').click(); return; }
-    const mPickBg=document.getElementById('statsMonthPickerBg');
-    if(mPickBg&&mPickBg.classList.contains('on')){ mPickBg.classList.remove('on'); return; }
+    const cffBgEl=document.getElementById('cffBg');
+    if(cffBgEl&&cffBgEl.classList.contains('on')){ closeCffModal(); return; }
     const shortcutsBg=document.getElementById('shortcutsBg');
     if(shortcutsBg&&shortcutsBg.classList.contains('on')){ shortcutsBg.classList.remove('on'); return; }
     const impBg=document.getElementById('importOptionsBg');
