@@ -748,9 +748,17 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
         <div class="sidebar-section">
           <div class="sidebar-title"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>export</div>
           <div class="btn-stack">
-            <button class="btn btn-block" onclick="exportToSage()" title="Download a Sage CSV with each crew's Field # written to Servicer_Id (rows without an assigned crew get '0')">
+            <button class="btn btn-block" onclick="exportToSage()" title="Write the Sage CSV with each crew's Field # in Servicer_Id, plus the Route4Me upload and CFF requests (unassigned rows are dropped)">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
               export to sage
+            </button>
+            <button class="btn btn-block" onclick="exportToRoute4Me()" title="Write only the Route4Me upload: one order row per assigned job, one Depot row per crew, Route ID = crew's Field #">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
+              route4me upload
+            </button>
+            <button class="btn btn-block" onclick="openCffModal()" title="Show the CFF calc requests grouped by crew — copy or download">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              cff requests
             </button>
           </div>
         </div>
@@ -779,9 +787,17 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
           unassign all
         </button>
         <div class="ws-topbar-sep"></div>
-        <button class="btn btn-sm" onclick="exportToSage()" title="Download a Sage CSV with each crew's Field # written to Servicer_Id">
+        <button class="btn btn-sm" onclick="exportToSage()" title="Write the Sage CSV, the Route4Me upload and CFF requests">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
           export to sage
+        </button>
+        <button class="btn btn-sm" onclick="exportToRoute4Me()" title="Write only the Route4Me upload">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
+          route4me
+        </button>
+        <button class="btn btn-sm" onclick="openCffModal()" title="Show the CFF calc requests — copy or download">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          cff
         </button>
         <div class="ws-topbar-sep"></div>
         <button class="btn btn-sm" onclick="mapFitAll()" title="fit the map to every job">
@@ -925,6 +941,8 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
               <div class="field"><label>sub review threshold (0–1)</label><input type="number" id="setFuzzyThreshold" value="0.80" step="0.01" min="0" max="1" title="min fuzzy score to surface suggestions in the sub-name review queue"></div>
               <div class="field"><label>priority routing</label><input type="checkbox" id="setRoutingMode" title="order clusters by due-date urgency; rush stops anchor at route start"></div>
               <div class="field"><label>export route card PDFs</label><input type="checkbox" id="setRouteCardPDF" title="download a route card PDF per crew when exporting to Sage"></div>
+              <div class="field"><label>export Route4Me upload</label><input type="checkbox" id="setR4mExport" title="also write the Route4Me upload CSV when exporting to Sage"></div>
+              <div class="field"><label>Route4Me depot rows</label><input type="checkbox" id="setR4mDepots" title="append one Depot row per crew at the crew's home coordinates"></div>
               <div class="hr"></div>
               <button class="btn btn-primary btn-block" onclick="saveAlgoSettings()">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
@@ -1096,6 +1114,25 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
   </div>
 </div>
 
+<!-- CFF CALC REQUESTS MODAL -->
+<div class="modal-bg" id="cffBg" role="dialog" aria-modal="true" aria-label="CFF calc requests">
+  <div class="modal" style="width:560px;max-width:94vw">
+    <div class="modal-head">
+      <span>CFF calc requests</span>
+      <button class="close" type="button" onclick="closeCffModal()" aria-label="close">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="cffSummary" style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5"></div>
+      <pre id="cffPre" style="margin:0;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;font-size:12.5px;line-height:1.55;max-height:48vh;overflow:auto;white-space:pre-wrap"></pre>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="cffDownload" onclick="cffDownload()" style="margin-right:auto">download .txt</button>
+      <button class="btn btn-ghost" onclick="closeCffModal()">close</button>
+      <button class="btn btn-primary" id="cffCopy" onclick="cffCopy()">copy</button>
+    </div>
+  </div>
+</div>
+
 <!-- SNAPSHOT DATE MODAL -->
 <div class="modal-bg" id="snapshotModalBg" role="dialog" aria-modal="true" aria-label="save snapshot">
   <div class="modal" style="width:360px;max-width:94vw">
@@ -1249,6 +1286,8 @@ const DEFAULT_DB = {
     sageTaskMapping:'',
     routingMode:'priority',
     routeCardPDF:false, // generate and download route card PDFs on export
+    r4mExport:true,     // also write the Route4Me upload (file02) on Export to Sage
+    r4mDepots:true,     // append one Depot row per exported crew (real home coords)
     dispatchDate:'',  // date jobs will be in field — set at import time
     startTime:'06:30' // crews leave home at this time — drives the workspace timeline
   }
@@ -4256,10 +4295,13 @@ function normalizeJobRecord(r, doFuzzyMatch, reviewMap){
  *
  * Import pipes each row through the existing normalizeJobRecord/
  * resolveSubForImport flow, but stashes every original line on
- * DB.sageImport so exportToSage() can hand back a byte-identical file
- * with only the Servicer_Id field (column 2) replaced by each crew's
- * Sage Field #. Crews missing a Field # get "0" → Sage treats that as
- * "leave row unchanged" on re-upload.
+ * DB.sageImport so exportToSage() can hand back the same file with only
+ * the touched cells changed: Servicer_Id (column 2) ← each crew's Sage
+ * Field #, and Status_Code OUT → IF. Unassigned rows, rows whose crew has
+ * no Field #, and every CFF row are dropped (see exportToSage).
+ *
+ * The same assignment also feeds exportToRoute4Me() — the Route4Me
+ * upload (file02) built from the crew/job state rather than the raw rows.
  */
 
 const SAGE_CSV_FIELDS = ['rdate','servicerId','statusCode','builder','masterJob','svcJobNum','address1','map','sub','section','task','p','division'];
@@ -4692,37 +4734,16 @@ async function exportToSage(){
   // crew the operator has tentatively assigned each CFF job to. Only
   // emitted when there's at least one CFF row with a crew + Field #.
   if(cffEntries.length){
-    // byCrew: fieldNumber → {crewName, subs: Map<subName, [{num,task}]>}
-    const byCrew = new Map();
-    for(const e of cffEntries){
-      if(!byCrew.has(e.fieldNumber)) byCrew.set(e.fieldNumber, {crewName:e.crewName, subs:new Map()});
-      const entry = byCrew.get(e.fieldNumber);
-      if(!entry.subs.has(e.sub)) entry.subs.set(e.sub, []);
-      entry.subs.get(e.sub).push({num:e.masterJob, task:e.task, due:e.due});
-    }
-    const blocks = [];
-    for(const fn of [...byCrew.keys()].sort()){
-      const {crewName, subs} = byCrew.get(fn);
-      const header = `${fn} - ${crewName}:`;
-      // Sub as a heading, one bulleted job per line beneath it, each with
-      // its schedule date — readable as a calc request instead of a run-on.
-      const subLines = [...subs.keys()].sort().flatMap(sn => {
-        const jobLines = subs.get(sn).map(j => {
-          // Sage stores master job as 9 leading zeros + 6 digits
-          // (e.g. 000000000438331). Strip the zeros for human reading.
-          const numStr = String(j.num).replace(/^0+/, '') || j.num;
-          const due = _fmtShortDate(j.due);
-          return `    • ${numStr}${j.task ? ` - ${j.task}` : ''}${due ? ` (sched ${due})` : ''}`;
-        });
-        return [`- ${sn}`, ...jobLines];
-      });
-      blocks.push([header, ...subLines].join('\n'));
-    }
-    const cffText = blocks.join('\n\n') + '\n';
+    const cffText = buildCffText(cffEntries);
     const cffName = `${yyyy}-${mm}-${dd}_CFF_FL.txt`;
     saveExportFile(cffName, new Blob([cffText], {type:'text/plain'}));
   }
   rlog(`Sage export: ${assigned} assigned (${flipped} flipped OUT→IF), ${cffPassed} CFF dropped from CSV (companion file only), ${skippedUnassigned} skipped (unassigned/deleted)${skippedNoField?', '+skippedNoField+' skipped (no field#)':''} → ${outName}`, 'ok');
+  // Second file: the Route4Me upload, built from the same assignment.
+  if(DB.settings.r4mExport!==false){
+    try{ await exportToRoute4Me({fromSageExport:true}); }
+    catch(e){ rlog('Route4Me upload failed: '+e.message,'err'); }
+  }
   if(cffEntries.length){
     const crewCount = new Set(cffEntries.map(e=>e.fieldNumber)).size;
     rlog(`CFF companion file: ${cffEntries.length} assignment${cffEntries.length===1?'':'s'} across ${crewCount} crew${crewCount===1?'':'s'} → ${yyyy}-${mm}-${dd}_CFF_FL.txt`, 'ok');
@@ -4759,6 +4780,228 @@ async function exportToSage(){
   }
   if(routeCardCount>0) toast(`${routeCardCount} route card PDF${routeCardCount===1?'':'s'} downloaded`);
   _exportBusy=false;
+}
+
+/* ============================================================
+ * CFF CALC REQUESTS — companion text for the other department
+ * ============================================================
+ * CFF rows never go back to Sage from here (its validator rejects them),
+ * so the operator's tentative crew choice for each one is handed over as
+ * plain text instead: one block per crew, subs as headings, one job per
+ * line. Written next to the Sage CSV on export and available on demand
+ * from the "CFF requests" button.
+ */
+function collectCffEntries(){
+  const out=[];
+  if(!DB.sageImport || !DB.sageImport.rows) return out;
+  const crewById = new Map(DB.crews.map(c => [c.id, c]));
+  const jobByRowIdx = new Map();
+  for(const j of DB.jobs){
+    if(j && typeof j.sageRowIdx === 'number') jobByRowIdx.set(j.sageRowIdx, j);
+  }
+  for(const row of DB.sageImport.rows){
+    if((row.fields.statusCode||'').toUpperCase() !== 'CFF') continue;
+    const job = jobByRowIdx.get(row.idx);
+    const crew = (job && job.crew) ? crewById.get(job.crew) : null;
+    if(!job || !crew) continue;
+    const fn = (crew.fieldNumber||'').trim();
+    if(!fn) continue;
+    out.push({
+      fieldNumber: fn,
+      crewName: crew.name||'',
+      sub: row.fields.sub || '',
+      masterJob: row.fields.masterJob || '',
+      task: row.fields.task || '',
+      due: job.dueDate || row.fields.dueDate || ''
+    });
+  }
+  return out;
+}
+function buildCffText(entries){
+  if(!entries.length) return '';
+  // byCrew: fieldNumber → {crewName, subs: Map<subName, [{num,task,due}]>}
+  const byCrew = new Map();
+  for(const e of entries){
+    if(!byCrew.has(e.fieldNumber)) byCrew.set(e.fieldNumber, {crewName:e.crewName, subs:new Map()});
+    const entry = byCrew.get(e.fieldNumber);
+    if(!entry.subs.has(e.sub)) entry.subs.set(e.sub, []);
+    entry.subs.get(e.sub).push({num:e.masterJob, task:e.task, due:e.due});
+  }
+  const blocks = [];
+  for(const fn of [...byCrew.keys()].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}))){
+    const {crewName, subs} = byCrew.get(fn);
+    const header = `${fn} - ${crewName}:`;
+    // Sub as a heading, one bulleted job per line beneath it, each with
+    // its schedule date — readable as a calc request instead of a run-on.
+    const subLines = [...subs.keys()].sort().flatMap(sn => {
+      const jobLines = subs.get(sn).map(j => {
+        // Sage stores master job as 9 leading zeros + 6 digits
+        // (e.g. 000000000438331). Strip the zeros for human reading.
+        const numStr = String(j.num).replace(/^0+/, '') || j.num;
+        const due = _fmtShortDate(j.due);
+        return `    • ${numStr}${j.task ? ` - ${j.task}` : ''}${due ? ` (sched ${due})` : ''}`;
+      });
+      return [`- ${sn}`, ...jobLines];
+    });
+    blocks.push([header, ...subLines].join('\n'));
+  }
+  return blocks.join('\n\n') + '\n';
+}
+function openCffModal(){
+  if(!DB.sageImport || !DB.sageImport.rows || !DB.sageImport.rows.length){
+    toast('no sage csv loaded — import a sage csv first', 1);
+    return;
+  }
+  const entries = collectCffEntries();
+  const crews = new Set(entries.map(e=>e.fieldNumber)).size;
+  const text = buildCffText(entries);
+  $('#cffSummary').textContent = entries.length
+    ? `${entries.length} assignment${entries.length===1?'':'s'} across ${crews} crew${crews===1?'':'s'} — these rows are dropped from the Sage export; send this to the calc department.`
+    : 'no CFF rows are assigned to a crew with a Sage Field # yet.';
+  $('#cffPre').textContent = text;
+  $('#cffCopy').disabled = !entries.length;
+  $('#cffDownload').disabled = !entries.length;
+  $('#cffBg').classList.add('on');
+}
+function closeCffModal(){ $('#cffBg').classList.remove('on'); }
+async function cffCopy(){
+  const text = $('#cffPre').textContent;
+  try{ await navigator.clipboard.writeText(text); toast('copied'); }
+  catch(e){
+    const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta);
+    ta.select(); try{ document.execCommand('copy'); toast('copied'); }catch(e2){ toast('copy failed — select the text manually',1); }
+    ta.remove();
+  }
+}
+function cffDownload(){
+  const text = $('#cffPre').textContent;
+  saveExportFile(`${_todayStamp()}_CFF_FL.txt`, new Blob([text], {type:'text/plain'}));
+}
+function _todayStamp(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+/* ============================================================
+ * ROUTE4ME UPLOAD (file02) — the second export
+ * ============================================================
+ * Route4Me does the turn-by-turn sequencing; the crew assignment is ours
+ * and made here. Every assigned job with coordinates becomes one order
+ * row, and each exported crew gets a Depot row at its REAL home. The
+ * crew's Sage Field # rides on both as Route ID so Route4Me keeps the
+ * routes the way the board has them.
+ *
+ * R4M_COLUMNS is the whole column plan. It is a placeholder taken from
+ * the Route4Me upload the workaround tool already had accepted; swap it
+ * for the account's template columns when that arrives. Each entry is
+ * {h: header text, v: (ctx) => cell}. ctx.kind is 'job' or 'depot'.
+ */
+const R4M_COLUMNS = [
+  {h:'Alias',          v:x=>x.alias},
+  {h:'Latitude',       v:x=>x.lat},
+  {h:'Longitude',      v:x=>x.lon},
+  {h:'Svc Job Num',    v:x=>x.kind==='job' ? x.svcJobNum : ''},      // join key back to Sage; blank keeps depots out of any reverse trip
+  {h:'Scheduled For',  v:x=>x.schedFor},
+  {h:'Service Time',   v:x=>x.kind==='job' ? x.serviceMin : ''},
+  {h:'Route ID',       v:x=>x.routeId},
+  {h:'Route Name',     v:x=>x.crewName},                              // label only — Route4Me does not assign by it
+  {h:'Depot',          v:x=>x.kind==='depot' ? '1' : ''},
+];
+function _r4mCell(v){
+  const t = String(v==null?'':v);
+  return /[",\n\r]/.test(t) ? '"'+t.replace(/"/g,'""')+'"' : t;
+}
+function _r4mCoord(v){
+  if(v==null||v==='') return '';
+  const n=Number(v);
+  return isNaN(n)?String(v):String(n);
+}
+// M/D/YYYY, the format Route4Me's importer took for "Scheduled For".
+function _r4mSchedFor(){
+  const d = DB.settings.dispatchDate || '';
+  const m = d.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${+m[2]}/${+m[3]}/${m[1]}` : '';
+}
+/* Builds {rows, stats} without touching disk so the export and any later
+   preview share one implementation. Jobs go crew by crew in board order. */
+function buildRoute4MeUpload(){
+  const svcByRow = new Map();
+  if(DB.sageImport && DB.sageImport.rows){
+    for(const row of DB.sageImport.rows) svcByRow.set(row.idx, row.fields.svcJobNum||'');
+  }
+  const schedFor = _r4mSchedFor();
+  const rows = [R4M_COLUMNS.map(c=>c.h)];
+  const stats = {jobs:0, crews:0, depots:0, noCoords:0, noHome:[], noField:[], missingSvc:0};
+  const aliasCount = new Map();
+  const crewRows = [];
+  for(const c of DB.crews){
+    if(!c.active) continue;
+    const jobs = DB.jobs.filter(j=>j.crew===c.id).sort((a,b)=>(a.order??9999)-(b.order??9999));
+    if(!jobs.length) continue;
+    const fn = (c.fieldNumber||'').trim();
+    // No Field # → the crew still routes, keyed by its internal id, but
+    // the operator hears about it: the Sage export drops these rows.
+    const routeId = fn || c.id;
+    if(!fn) stats.noField.push(c.name);
+    const crewName = c.name || '';
+    const out = [];
+    for(const j of jobs){
+      if(j.lat==null || j.lon==null){ stats.noCoords++; continue; }
+      const svcJobNum = (typeof j.sageRowIdx==='number') ? (svcByRow.get(j.sageRowIdx)||'') : '';
+      if(!svcJobNum) stats.missingSvc++;
+      const tt = getTaskType(j.type);
+      const alias = [String(j.type||'').trim(), String(j.sub||'').trim(), String(j.address||'').trim()].filter(Boolean).join(' - ');
+      aliasCount.set(alias, (aliasCount.get(alias)||0)+1);
+      out.push({kind:'job', alias, lat:_r4mCoord(j.lat), lon:_r4mCoord(j.lon), svcJobNum, schedFor,
+        serviceMin: tt && isFinite(+tt.baseMin) ? String(+tt.baseMin) : '', routeId, crewName});
+      stats.jobs++;
+    }
+    if(!out.length) continue;
+    stats.crews++;
+    if(DB.settings.r4mDepots!==false){
+      if(c.lat==null || c.lon==null){ stats.noHome.push(c.name); }
+      else{
+        out.push({kind:'depot', alias:`${crewName} Home`, lat:_r4mCoord(c.lat), lon:_r4mCoord(c.lon),
+          svcJobNum:'', schedFor, serviceMin:'', routeId, crewName});
+        stats.depots++;
+      }
+    }
+    crewRows.push(out);
+  }
+  // Same task in the same sub → identical aliases. Number them so every
+  // stop in Route4Me is distinguishable: "FORM - Westview (1)", "(2)", ...
+  const aliasSeen = new Map();
+  for(const list of crewRows) for(const x of list){
+    if(x.kind!=='job' || aliasCount.get(x.alias)<2) continue;
+    const n=(aliasSeen.get(x.alias)||0)+1; aliasSeen.set(x.alias,n);
+    x.alias=`${x.alias} (${n})`;
+  }
+  for(const list of crewRows) for(const x of list) rows.push(R4M_COLUMNS.map(c=>c.v(x)));
+  return {rows, stats};
+}
+let _r4mBusy=false;
+async function exportToRoute4Me(opts){
+  opts=opts||{};
+  if(_r4mBusy){ toast('Route4Me export already running',1); return; }
+  _r4mBusy=true;
+  try{
+    const {rows, stats} = buildRoute4MeUpload();
+    if(!stats.jobs){
+      toast('nothing to send to Route4Me — no assigned jobs with coordinates',1);
+      rlog('Route4Me upload: no assigned jobs with coordinates','err');
+      return;
+    }
+    const text = rows.map(r=>r.map(_r4mCell).join(',')).join('\r\n') + '\r\n';
+    const outName = `${_todayStamp()}_route4me_FL.csv`;
+    await saveExportFile(outName, new Blob([text], {type:'text/csv'}));
+    rlog(`Route4Me upload: ${stats.jobs} stop${stats.jobs===1?'':'s'} on ${stats.crews} route${stats.crews===1?'':'s'}, ${stats.depots} depot${stats.depots===1?'':'s'}${stats.noCoords?', '+stats.noCoords+' skipped (no coordinates)':''} → ${outName}`,'ok');
+    for(const n of stats.noHome) rlog(`crew "${n}" has no home coordinates — no Depot row; Route4Me will start its route at the first stop`,'warn');
+    for(const n of stats.noField) rlog(`crew "${n}" has no Sage Field # — Route ID uses the crew's internal id instead`,'warn');
+    if(stats.missingSvc) rlog(`${stats.missingSvc} stop${stats.missingSvc===1?'':'s'} carry no Svc Job Num (not from a Sage CSV row)`,'warn');
+    if(!opts.fromSageExport) toast(`Route4Me upload: ${stats.jobs} stops, ${stats.crews} routes`);
+  }finally{
+    _r4mBusy=false;
+  }
 }
 
 /* Builds the page object generateRouteCardPDF() consumes for one crew.
@@ -5991,7 +6234,7 @@ function renderCrews(){
   hdr.style.color='var(--muted)';
   hdr.style.textTransform='uppercase';
   hdr.style.letterSpacing='.06em';
-  hdr.innerHTML=`<div></div><div>on</div><div>color</div><div>name</div><div>home address</div><div>avg min/task</div><div title="vs baseline">vs base</div><div>shift min</div><div title="Sage Servicer_Id written on Export to Sage. Empty = exports as &quot;0&quot; (Sage leaves row unchanged).">field #</div><div>status</div><div title="print this crew's route card PDF">print</div><div></div>`;
+  hdr.innerHTML=`<div></div><div>on</div><div>color</div><div>name</div><div>home address</div><div>avg min/task</div><div title="vs baseline">vs base</div><div>shift min</div><div title="Sage Servicer_Id written on Export to Sage and used as the Route4Me Route ID. Empty = this crew's rows are dropped from the Sage export.">field #</div><div>status</div><div title="print this crew's route card PDF">print</div><div></div>`;
   wrap.appendChild(hdr);
 
   if(!DB.crews.length){
@@ -6172,6 +6415,8 @@ function renderSettings(){
   $('#setFuzzyThreshold').value=DB.settings.fuzzyThreshold!=null?DB.settings.fuzzyThreshold:0.80;
   $('#setRoutingMode').checked=DB.settings.routingMode==='priority';
   $('#setRouteCardPDF').checked=DB.settings.routeCardPDF!==false;
+  $('#setR4mExport').checked=DB.settings.r4mExport!==false;
+  $('#setR4mDepots').checked=DB.settings.r4mDepots!==false;
   $('#setProxyUrl').value=DB.settings.proxyUrl;
   renderTaskTypes();
   populateSageTaskMapping();
@@ -6678,6 +6923,8 @@ function saveAlgoSettings(){
   DB.settings.fuzzyThreshold=(Number.isFinite(th)&&th>=0&&th<=1)?th:0.80;
   DB.settings.routingMode=$('#setRoutingMode').checked?'priority':'classic';
   DB.settings.routeCardPDF=$('#setRouteCardPDF').checked;
+  DB.settings.r4mExport=$('#setR4mExport').checked;
+  DB.settings.r4mDepots=$('#setR4mDepots').checked;
   save(true);toast('saved');
   renderRun();
   renderCrews();
