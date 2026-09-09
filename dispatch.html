@@ -10,7 +10,6 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js" crossorigin=""></script>
 <style>
 /* ============ THEME ============ */
 :root{
@@ -425,7 +424,7 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
 
 /* ============ CREWS PAGE ============ */
 .crews-wrap{flex:1;padding:12px 14px;overflow-y:auto}
-.crew-card{display:grid;grid-template-columns:18px 28px 28px 1fr 1fr 80px 60px 70px 80px 90px 30px 28px;gap:10px;align-items:center;background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:6px}
+.crew-card{display:grid;grid-template-columns:18px 28px 28px 1fr 1fr 80px 60px 70px 80px 90px 28px;gap:10px;align-items:center;background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:6px}
 .crew-drag-handle{cursor:grab;color:var(--silver);display:flex;align-items:center;justify-content:center;user-select:none;font-size:14px;line-height:1}
 .crew-card.drag-over-top{box-shadow:0 -2px 0 var(--navy)}
 .crew-card.drag-over-bottom{box-shadow:0 2px 0 var(--navy)}
@@ -434,10 +433,6 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
 .crew-card .speed-pct.slow{background:var(--red-wash);color:var(--red)}
 .crew-card .speed-pct.fast{background:var(--green-wash);color:var(--green)}
 .crew-card.off{opacity:.55}
-.crew-print-btn{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;padding:0;border:1px solid var(--border);border-radius:4px;background:var(--bg-panel);color:var(--muted);cursor:pointer;transition:border-color .08s,color .08s,background .08s}
-.crew-print-btn:hover:not(:disabled){border-color:var(--blue);color:var(--blue);background:var(--blue-wash)}
-.crew-print-btn:disabled{opacity:.35;cursor:default}
-.crew-print-btn.printing{border-color:var(--amber);color:var(--amber);background:var(--amber-wash)}
 .crew-toggle{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border-strong);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .crew-toggle.on{background:var(--navy);border-color:var(--navy)}
 .crew-toggle.on::after{content:"";width:6px;height:6px;background:#fff;border-radius:50%}
@@ -635,7 +630,7 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
         <div class="sidebar-section">
           <div class="sidebar-title"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>dispatch date</div>
           <input type="date" id="dispatchDateInput" style="width:100%;margin-bottom:4px" oninput="DB.settings.dispatchDate=this.value;save(true)">
-          <div style="font-size:10px;color:var(--muted);line-height:1.4">date jobs will be in field — used for due-date scoring and route cards</div>
+          <div style="font-size:10px;color:var(--muted);line-height:1.4">date jobs will be in field — used for due-date scoring and Route4Me priority</div>
         </div>
 
         <div class="sidebar-section">
@@ -747,13 +742,9 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
         <div class="sidebar-section">
           <div class="sidebar-title"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>export</div>
           <div class="btn-stack">
-            <button class="btn btn-block" onclick="exportToSage()" title="Write the Sage CSV with each crew's Field # in Servicer_Id, plus the Route4Me upload and CFF requests (unassigned rows are dropped)">
+            <button class="btn btn-primary btn-block" onclick="exportToSage()" title="Write the Sage CSV (each crew's Field # in Servicer_Id, unassigned rows dropped), the Route4Me upload, and the CFF requests">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
-              export to sage
-            </button>
-            <button class="btn btn-block" onclick="exportToRoute4Me()" title="Write only the Route4Me upload: one order row per assigned job, one Depot row per crew, Route ID = crew's Field #">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
-              route4me upload
+              export sage + route4me
             </button>
             <button class="btn btn-block" onclick="openCffModal()" title="Show the CFF calc requests grouped by crew — copy or download">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -786,13 +777,9 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
           unassign all
         </button>
         <div class="ws-topbar-sep"></div>
-        <button class="btn btn-sm" onclick="exportToSage()" title="Write the Sage CSV, the Route4Me upload and CFF requests">
+        <button class="btn btn-sm" onclick="exportToSage()" title="Write the Sage CSV, the Route4Me upload and the CFF requests">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
-          export to sage
-        </button>
-        <button class="btn btn-sm" onclick="exportToRoute4Me()" title="Write only the Route4Me upload">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
-          route4me
+          export
         </button>
         <button class="btn btn-sm" onclick="openCffModal()" title="Show the CFF calc requests — copy or download">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -887,8 +874,6 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
               <div class="field"><label>big-sub threshold (jobs)</label><input type="number" id="setBigSubThreshold" value="15" min="1" title="subs with this many or more unlocked jobs are placed first as priority blocks"></div>
               <div class="field"><label>sub review threshold (0–1)</label><input type="number" id="setFuzzyThreshold" value="0.80" step="0.01" min="0" max="1" title="min fuzzy score to surface suggestions in the sub-name review queue"></div>
               <div class="field"><label>priority routing</label><input type="checkbox" id="setRoutingMode" title="order clusters by due-date urgency; rush stops anchor at route start"></div>
-              <div class="field"><label>export route card PDFs</label><input type="checkbox" id="setRouteCardPDF" title="download a route card PDF per crew when exporting to Sage"></div>
-              <div class="field"><label>export Route4Me upload</label><input type="checkbox" id="setR4mExport" title="also write the Route4Me upload CSV when exporting to Sage"></div>
               <div class="field"><label>Route4Me depot rows</label><input type="checkbox" id="setR4mDepots" title="append one Depot row per crew at the crew's home coordinates"></div>
               <div class="hr"></div>
               <button class="btn btn-primary btn-block" onclick="saveAlgoSettings()">
@@ -906,23 +891,6 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                   add
                 </button>
-              </div>
-            </div>
-
-            <div class="card" style="grid-column:1/-1">
-              <h3><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>route4me priority</h3>
-              <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:8px">One row per Sage task name. A stop takes the hottest (lowest) number its two clocks offer: how close Schedule_Date is to the dispatch date, and how long ago it was received. Blank = no contribution. A task with no row goes to Route4Me with a blank Priority.</div>
-              <div id="r4mPrioLadder" style="display:flex;gap:2px;margin-bottom:8px;border-radius:4px;overflow:hidden"></div>
-              <div id="r4mPrioList" style="overflow-x:auto"></div>
-              <div class="btn-row" style="margin-top:10px;align-items:center;flex-wrap:wrap">
-                <input type="text" id="r4mPrioNew" placeholder="sage task name (e.g. FORM SURVEY)" style="flex:1;min-width:180px">
-                <button class="btn" onclick="r4mPrioAdd()">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                  add
-                </button>
-                <span style="font-size:11px;color:var(--muted);margin-left:auto">rush code <b>R</b> →</span>
-                <input type="number" id="r4mRushValue" min="1" style="width:56px" title="Priority written when Sage's Priority column is R">
-                <button class="btn btn-ghost" onclick="r4mPrioReset()" title="restore the standard task rows">reset</button>
               </div>
             </div>
 
@@ -989,6 +957,23 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
               <textarea id="sageTaskMapping" rows="14"
                         style="width:100%;font-size:11px;font-family:var(--mono,monospace);box-sizing:border-box"
                         oninput="onSageTaskMappingInput()" onblur="saveSageTaskMapping()"></textarea>
+            </div>
+
+            <div class="card" style="grid-column:1/-1">
+              <h3><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>route4me priority</h3>
+              <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:8px">One row per Sage task name. A stop takes the hottest (lowest) number its two clocks offer: how close Schedule_Date is to the dispatch date, and how long ago it was received. Blank = no contribution. A task with no row goes to Route4Me with a blank Priority.</div>
+              <div id="r4mPrioLadder" style="display:flex;gap:2px;margin-bottom:8px;border-radius:4px;overflow:hidden"></div>
+              <div id="r4mPrioList" style="overflow-x:auto"></div>
+              <div class="btn-row" style="margin-top:10px;align-items:center;flex-wrap:wrap">
+                <input type="text" id="r4mPrioNew" placeholder="sage task name (e.g. FORM SURVEY)" style="flex:1;min-width:180px">
+                <button class="btn" onclick="r4mPrioAdd()">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  add
+                </button>
+                <span style="font-size:11px;color:var(--muted);margin-left:auto">rush code <b>R</b> →</span>
+                <input type="number" id="r4mRushValue" min="1" style="width:56px" title="Priority written when Sage's Priority column is R">
+                <button class="btn btn-ghost" onclick="r4mPrioReset()" title="restore the standard task rows">reset</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1193,8 +1178,6 @@ const DEFAULT_DB = {
     proxyUrl:'https://white-term-14b0.rmymcy.workers.dev',
     sageTaskMapping:'',
     routingMode:'priority',
-    routeCardPDF:false, // generate and download route card PDFs on export
-    r4mExport:true,     // also write the Route4Me upload (file02) on Export to Sage
     r4mDepots:true,     // append one Depot row per exported crew (real home coords)
     r4mPriority:null,   // {tasks:[{name,due:[4],recv:[4]}], codes:{R:'1'}} — null = R4M_TASK_DEFAULT
     dispatchDate:'',  // date jobs will be in field — set at import time
@@ -4534,7 +4517,6 @@ async function exportToSage(){
   }
   if(_exportBusy){ toast('export already running',1); return; }
   _exportBusy=true;
-  const snapshotDate = DB.settings.dispatchDate || '';
   // jobs assigned to a crew via job.crew (set by optimizer). null/missing = unassigned.
   const crewById = new Map(DB.crews.map(c => [c.id, c]));
   const jobByRowIdx = new Map();
@@ -4648,44 +4630,20 @@ async function exportToSage(){
   }
   rlog(`Sage export: ${assigned} assigned (${flipped} flipped OUT→IF), ${cffPassed} CFF dropped from CSV (companion file only), ${skippedUnassigned} skipped (unassigned/deleted)${skippedNoField?', '+skippedNoField+' skipped (no field#)':''} → ${outName}`, 'ok');
   // Second file: the Route4Me upload, built from the same assignment.
-  if(DB.settings.r4mExport!==false){
-    try{ await exportToRoute4Me({fromSageExport:true}); }
-    catch(e){ rlog('Route4Me upload failed: '+e.message,'err'); }
-  }
+  try{ await exportToRoute4Me(); }
+  catch(e){ rlog('Route4Me upload failed: '+e.message,'err'); }
   if(cffEntries.length){
     const crewCount = new Set(cffEntries.map(e=>e.fieldNumber)).size;
     rlog(`CFF companion file: ${cffEntries.length} assignment${cffEntries.length===1?'':'s'} across ${crewCount} crew${crewCount===1?'':'s'} → ${yyyy}-${mm}-${dd}_CFF_FL.txt`, 'ok');
   }
-  // Route card PDFs — pure jsPDF schematic, no popups, no tile loading
-  const routeDate=snapshotDate
-    ? `${snapshotDate.slice(5,7)}/${snapshotDate.slice(8,10)}`
-    : `${mm}/${dd}`;
-  const doRoutePDFs=DB.settings.routeCardPDF!==false;
-  toast(`exported ${assigned} rows${cffEntries.length?' + CFF report':''}${doRoutePDFs&&DB.crews.some(c=>c.active&&DB.jobs.some(j=>j.crew===c.id&&j.lat!=null))?' · generating route cards…':''}`);
-  // Auto-backup: every successful Sage export also writes a full DB
-  // snapshot next to it — the real insurance behind localStorage.
+  toast(`exported ${assigned} rows${cffEntries.length?' + CFF report':''}`);
+  // Auto-backup: every successful export also writes a full DB snapshot
+  // next to it — the real insurance behind localStorage.
   try{
     const now=new Date();
     const stamp=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
     saveExportFile(`dispatch_backup_${stamp}.json`, new Blob([backupPayload()],{type:'application/json'}));
   }catch(e){ rlog('auto-backup failed: '+e.message,'warn'); }
-  // Generate PDFs sequentially so maps don't race
-  let routeCardCount=0;
-  if(!doRoutePDFs){ _exportBusy=false; return; }
-  const activeCrews=DB.crews.filter(c=>c.active);
-  for(let ci=0;ci<activeCrews.length;ci++){
-    const c=activeCrews[ci];
-    const page=buildRouteCardPage(c, routeDate, ci);
-    if(!page) continue;
-    try{
-      await generateRouteCardPDF(page);
-      routeCardCount++;
-      rlog(`Route card: ${c.name} → ${page.firstName}_route_${routeDate.replace('/','_')}.pdf`,'ok');
-    }catch(e){
-      rlog(`Route card failed for ${c.name}: ${e.message}`,'err');
-    }
-  }
-  if(routeCardCount>0) toast(`${routeCardCount} route card PDF${routeCardCount===1?'':'s'} downloaded`);
   _exportBusy=false;
 }
 
@@ -4790,7 +4748,7 @@ function _todayStamp(){
 }
 
 /* ============================================================
- * ROUTE4ME UPLOAD (file02) — the second export
+ * ROUTE4ME UPLOAD (file02) — the second file every export writes
  * ============================================================
  * Route4Me does the turn-by-turn sequencing; the crew assignment is ours
  * and made here. Every assigned job with coordinates becomes one order
@@ -4967,8 +4925,7 @@ function buildRoute4MeUpload(){
   return {rows, stats};
 }
 let _r4mBusy=false;
-async function exportToRoute4Me(opts){
-  opts=opts||{};
+async function exportToRoute4Me(){
   if(_r4mBusy){ toast('Route4Me export already running',1); return; }
   _r4mBusy=true;
   try{
@@ -4990,383 +4947,9 @@ async function exportToRoute4Me(opts){
       const top=[...stats.prioUnmapped.entries()].sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,v])=>`"${k}" (${v})`).join(', ');
       rlog(`tasks with no Route4Me priority row: ${top} — add them under Settings › Route4Me priority`,'warn');
     }
-    if(!opts.fromSageExport) toast(`Route4Me upload: ${stats.jobs} stops, ${stats.crews} routes`);
   }finally{
     _r4mBusy=false;
   }
-}
-
-/* Builds the page object generateRouteCardPDF() consumes for one crew.
-   Shared by the bulk "export to sage" run and the per-crew print button
-   on the Crews page. Returns null when the crew has nothing printable
-   (no geocoded jobs, or no named subs among them). */
-function buildRouteCardPage(c, routeDate, ci){
-  const crewJobs=DB.jobs.filter(j=>j.crew===c.id&&j.lat!=null)
-    .sort((a,b)=>(a.order??9999)-(b.order??9999));
-  if(!crewJobs.length) return null;
-  const subOrder=new Map();
-  const subList=[];
-  for(const j of crewJobs){
-    const sub=(j.sub||'').trim();
-    if(sub&&!subOrder.has(sub)){subOrder.set(sub,subList.length+1);subList.push(sub);}
-  }
-  if(!subList.length) return null;
-  const taskLines=subList.map(sub=>{
-    const counts={};
-    for(const j of crewJobs){
-      if((j.sub||'').trim()===sub){const t=(j.type||'MISC').toUpperCase();counts[t]=(counts[t]||0)+1;}
-    }
-    return Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([t,n])=>`${t}\xd7${n}`);
-  });
-  const cffCounts=subList.map(sub=>crewJobs.filter(j=>(j.sub||'').trim()===sub&&(j.statusCode||'').toUpperCase()==='CFF').length);
-  // Use the crew's own colour so a one-off print matches the map legend;
-  // the bulk run passes its loop index to preserve the original palette order.
-  const color=ci!=null?CREW_COLORS[ci%CREW_COLORS.length]:crewColor(c.id);
-  const routeKey='v2:'+c.id+'::'+crewJobs.map(j=>j.id).join(',');
-  const cached=DB.osrmRoutes&&DB.osrmRoutes[routeKey];
-  return {
-    firstName:c.name.trim().split(/\s+/)[0], fullName:c.name,
-    home:(c.lat!=null&&c.lon!=null)?{lat:c.lat,lon:c.lon}:null,
-    jobs:crewJobs.map(j=>({lat:j.lat,lon:j.lon,sub:(j.sub||'').trim(),stopNum:subOrder.get((j.sub||'').trim())||0})),
-    subList, taskLines, cffCounts, color, polyline:cached?cached.path:null, routeDate
-  };
-}
-
-/* Print one crew's route card on demand from the Crews page. */
-let _printingRoute=false;
-async function printCrewRoute(crewId){
-  if(_printingRoute){ toast('already generating a route card',1); return; }
-  const c=DB.crews.find(x=>x.id===crewId);
-  if(!c){ toast('crew not found',1); return; }
-  const d=DB.settings.dispatchDate;
-  const routeDate=d ? `${d.slice(5,7)}/${d.slice(8,10)}`
-                    : (()=>{const n=new Date();return `${String(n.getMonth()+1).padStart(2,'0')}/${String(n.getDate()).padStart(2,'0')}`;})();
-  const page=buildRouteCardPage(c, routeDate);
-  if(!page){
-    toast(`${c.name} has no geocoded jobs to print`,1);
-    return;
-  }
-  const btn=document.querySelector(`[data-print-route="${crewId}"]`);
-  if(btn){ btn.disabled=true; btn.classList.add('printing'); }
-  _printingRoute=true;
-  try{
-    await generateRouteCardPDF(page);
-    toast(`${page.firstName}_route_${routeDate.replace('/','_')}.pdf downloaded`);
-    rlog(`Route card (manual): ${c.name}`,'ok');
-  }catch(e){
-    toast(`route card failed: ${e.message}`,1);
-    rlog(`Route card failed for ${c.name}: ${e.message}`,'err');
-  }finally{
-    _printingRoute=false;
-    if(btn){ btn.disabled=false; btn.classList.remove('printing'); }
-  }
-}
-
-// Generates a route card PDF using real OSM tile compositing on an
-// offscreen canvas — no Leaflet map, no popups, no html2canvas.
-// Falls back to a schematic diagram if tile loading fails.
-async function generateRouteCardPDF(p){
-  function hexRgb(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
-  const {jsPDF}=window.jspdf;
-  const pdf=new jsPDF('p','mm','letter');
-  const PW=pdf.internal.pageSize.getWidth();
-  const PH=pdf.internal.pageSize.getHeight();
-  const mg=12;
-
-  // ── Header ────────────────────────────────────────────────────────────────
-  pdf.setFont('helvetica','bold');pdf.setFontSize(15);pdf.setTextColor(17,17,17);
-  pdf.text(p.fullName,mg,mg+5);
-  pdf.setFont('helvetica','normal');pdf.setFontSize(10);pdf.setTextColor(100,100,100);
-  pdf.text('Route  ·  '+p.routeDate,mg,mg+11);
-
-  const mapX=mg,mapY=mg+17,mapW=PW-mg*2,mapH=Math.round(PH*0.60);
-
-  // Collect all points
-  const allPts=[];
-  if(p.home) allPts.push({lat:p.home.lat,lon:p.home.lon});
-  const seenSubs=new Set();
-  const stopPts=[];
-  for(const j of p.jobs){
-    const sub=(j.sub||'').trim();
-    if(sub&&!seenSubs.has(sub)){seenSubs.add(sub);stopPts.push(j);}
-    allPts.push({lat:j.lat,lon:j.lon});
-  }
-
-  // ── Map section ───────────────────────────────────────────────────────────
-  let mapDataUrl=null;
-  try{ mapDataUrl=await _buildTileMap(p,allPts,stopPts,Math.round(mapW*6),Math.round(mapH*6)); }catch(e){}
-
-  if(mapDataUrl){
-    pdf.addImage(mapDataUrl,'JPEG',mapX,mapY,mapW,mapH);
-    pdf.setDrawColor(200,200,208);pdf.setLineWidth(0.3);
-    pdf.roundedRect(mapX,mapY,mapW,mapH,2,2,'S');
-  } else {
-    // Schematic fallback
-    pdf.setFillColor(240,240,245);
-    pdf.roundedRect(mapX,mapY,mapW,mapH,3,3,'F');
-    pdf.setDrawColor(200,200,208);pdf.setLineWidth(0.3);
-    pdf.roundedRect(mapX,mapY,mapW,mapH,3,3,'S');
-    const pad=0.12;
-    let minLat=Infinity,maxLat=-Infinity,minLon=Infinity,maxLon=-Infinity;
-    for(const pt of allPts){
-      if(pt.lat<minLat)minLat=pt.lat;if(pt.lat>maxLat)maxLat=pt.lat;
-      if(pt.lon<minLon)minLon=pt.lon;if(pt.lon>maxLon)maxLon=pt.lon;
-    }
-    const dLat=maxLat-minLat||0.02,dLon=maxLon-minLon||0.02;
-    minLat-=dLat*pad;maxLat+=dLat*pad;minLon-=dLon*pad;maxLon+=dLon*pad;
-    const ip=6;
-    function proj(lat,lon){
-      return{x:mapX+ip+(lon-minLon)/(maxLon-minLon)*(mapW-ip*2),
-             y:mapY+ip+(1-(lat-minLat)/(maxLat-minLat))*(mapH-ip*2)};
-    }
-    const[cr,cg,cb]=hexRgb(p.color);
-    pdf.setDrawColor(cr,cg,cb);pdf.setLineWidth(1.0);
-    if(p.polyline&&p.polyline.length>1){
-      const step=Math.max(1,Math.floor(p.polyline.length/300));
-      let prev=null;
-      for(let i=0;i<p.polyline.length;i+=step){
-        const{x,y}=proj(p.polyline[i][0],p.polyline[i][1]);
-        if(prev) pdf.line(prev.x,prev.y,x,y);
-        prev={x,y};
-      }
-    } else {
-      pdf.setLineDashPattern([2,1.5],0);
-      const pts2=[];
-      if(p.home) pts2.push(proj(p.home.lat,p.home.lon));
-      for(const j of stopPts) pts2.push(proj(j.lat,j.lon));
-      if(p.home) pts2.push(proj(p.home.lat,p.home.lon));
-      for(let i=1;i<pts2.length;i++) pdf.line(pts2[i-1].x,pts2[i-1].y,pts2[i].x,pts2[i].y);
-      pdf.setLineDashPattern([],0);
-    }
-    for(const j of stopPts){
-      const{x,y}=proj(j.lat,j.lon);
-      pdf.setFillColor(cr,cg,cb);pdf.setDrawColor(255,255,255);pdf.setLineWidth(0.5);
-      pdf.circle(x,y,3.5,'FD');
-      pdf.setFont('helvetica','bold');pdf.setFontSize(5.5);pdf.setTextColor(255,255,255);
-      pdf.text(String(j.stopNum),x,y+0.8,{align:'center'});
-    }
-    if(p.home){
-      const{x,y}=proj(p.home.lat,p.home.lon);
-      const hw=3.2;
-      pdf.setFillColor(40,40,40);pdf.setLineWidth(0);
-      pdf.lines([[hw,-hw*1.3],[hw,hw*1.3]],x-hw,y-hw*0.1,[1,1],'F',true);
-      pdf.rect(x-hw*0.78,y-hw*0.1,hw*1.56,hw*1.1,'F');
-      pdf.setFillColor(255,255,255);
-      pdf.rect(x-hw*0.25,y+hw*0.2,hw*0.5,hw*0.9,'F');
-    }
-  }
-
-  // ── Greeting + horizontal stop chain ─────────────────────────────────────
-  const[cr,cg,cb]=hexRgb(p.color);
-  let y=mapY+mapH+8;
-  pdf.setFont('helvetica','normal');pdf.setFontSize(11);pdf.setTextColor(17,17,17);
-  pdf.text('Good morning, '+p.firstName+', here is your suggested route for '+p.routeDate+'.',mg,y);
-  y+=9;
-
-  const dr=3.2,iconW=dr*2,gap=2.5,arrowW=5.5;
-  const TYPE_LINE_H=3.2; // mm per stacked type row
-  function itemH(item){return dr*2+4+(item.taskLines?.length?item.taskLines.length*TYPE_LINE_H:0);}
-  pdf.setFontSize(8.5);
-  const chain=[{type:'home'},...p.subList.map((s,i)=>({type:'stop',num:i+1,name:s,taskLines:p.taskLines?.[i]||[],cffCount:p.cffCounts?.[i]||0})),{type:'home'}];
-  function labelFor(item){return item.type==='home'?'Home':(item.name.length>24?item.name.slice(0,23)+'…':item.name);}
-  function chipW(item){
-    pdf.setFontSize(8.5);
-    const lw=pdf.getTextWidth(labelFor(item));
-    if(item.type==='home') return iconW+gap+lw;
-    pdf.setFontSize(7);
-    const tw=Math.max(0,...(item.taskLines||[]).map(l=>pdf.getTextWidth(l)));
-    pdf.setFontSize(8.5);
-    return iconW+gap+Math.max(lw,tw);
-  }
-
-  // Pass 1: assign items to visual rows so each row's height = tallest stop in that row
-  const chainRows=[];
-  {
-    let hx=mg,row=[];
-    chain.forEach((item,ii)=>{
-      pdf.setFontSize(8.5);
-      const cw=chipW(item),isLast=ii===chain.length-1;
-      const full=cw+(isLast?0:gap+arrowW);
-      if(ii>0&&hx+full>PW-mg+0.5){chainRows.push(row);row=[];hx=mg;}
-      row.push({...item,cw,isLast});
-      hx+=full;
-    });
-    if(row.length) chainRows.push(row);
-  }
-
-  // Pass 2: render each row using per-row height
-  for(const row of chainRows){
-    const rowH=Math.max(...row.map(item=>itemH(item)));
-    let hx=mg;
-    for(const item of row){
-      const mid=y+dr;
-      const lbl=labelFor(item);
-      if(item.type==='home'){
-        const cx=hx+dr,cy=mid,hw=dr;
-        pdf.setFillColor(40,40,40);pdf.setLineWidth(0);
-        pdf.lines([[hw,-hw*1.3],[hw,hw*1.3]],cx-hw,cy-hw*0.1,[1,1],'F',true);
-        pdf.rect(cx-hw*0.78,cy-hw*0.1,hw*1.56,hw*1.1,'F');
-        pdf.setFillColor(255,255,255);
-        pdf.rect(cx-hw*0.25,cy+hw*0.2,hw*0.5,hw*0.9,'F');
-      }else{
-        pdf.setFillColor(cr,cg,cb);pdf.setDrawColor(255,255,255);pdf.setLineWidth(0.3);
-        pdf.circle(hx+dr,mid,dr,'F');
-        pdf.setFont('helvetica','bold');pdf.setFontSize(5.5);pdf.setTextColor(255,255,255);
-        pdf.text(String(item.num),hx+dr,mid+0.8,{align:'center'});
-        if(item.cffCount>0){
-          const br=2.0,badgeCx=hx+dr+dr*0.65,badgeCy=mid-dr*0.65;
-          pdf.setFillColor(202,138,4);pdf.setDrawColor(255,255,255);pdf.setLineWidth(0.4);
-          pdf.circle(badgeCx,badgeCy,br,'FD');
-          pdf.setFont('helvetica','bold');pdf.setFontSize(4.5);pdf.setTextColor(255,255,255);
-          pdf.text(String(item.cffCount),badgeCx,badgeCy+0.6,{align:'center'});
-        }
-      }
-      pdf.setFont('helvetica','normal');pdf.setFontSize(8.5);pdf.setTextColor(17,17,17);
-      pdf.text(lbl,hx+iconW+gap,mid+1);
-      if(item.type==='stop'&&item.taskLines.length){
-        pdf.setFont('helvetica','normal');pdf.setFontSize(7);pdf.setTextColor(120,120,130);
-        item.taskLines.forEach((tl,li)=>{
-          pdf.text(tl,hx+iconW+gap,mid+1+(li+1)*TYPE_LINE_H);
-        });
-      }
-      hx+=item.cw;
-      if(!item.isLast){
-        pdf.setFont('helvetica','normal');pdf.setFontSize(9);pdf.setTextColor(160,160,170);
-        pdf.text('>',hx+gap*0.5,mid+1);
-        hx+=gap+arrowW;
-      }
-    }
-    y+=rowH+2;
-  }
-  await saveExportFile(p.firstName+'_route_'+p.routeDate.replace(/\//g,'_')+'.pdf', pdf.output('blob'));
-}
-
-// Fetches OSM tiles and composites them with route/markers onto a canvas.
-// Returns a data URL (JPEG) or throws on complete failure.
-async function _buildTileMap(p,allPts,stopPts,pxW,pxH){
-  const TILE=256;
-  // Bounding box
-  let minLat=Infinity,maxLat=-Infinity,minLon=Infinity,maxLon=-Infinity;
-  for(const pt of allPts){
-    if(pt.lat<minLat)minLat=pt.lat;if(pt.lat>maxLat)maxLat=pt.lat;
-    if(pt.lon<minLon)minLon=pt.lon;if(pt.lon>maxLon)maxLon=pt.lon;
-  }
-  if(p.polyline) for(const [lat,lon] of p.polyline){
-    if(lat<minLat)minLat=lat;if(lat>maxLat)maxLat=lat;
-    if(lon<minLon)minLon=lon;if(lon>maxLon)maxLon=lon;
-  }
-  const latPad=(maxLat-minLat)*0.15||0.025, lonPad=(maxLon-minLon)*0.15||0.025;
-  minLat-=latPad;maxLat+=latPad;minLon-=lonPad;maxLon+=lonPad;
-
-  function toTileXY(lat,lon,z){
-    const n=Math.pow(2,z);
-    return{tx:(lon+180)/360*n, ty:(1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*n};
-  }
-  // Pick zoom so we have 4–8 tiles wide
-  let zoom=12;
-  for(let z=15;z>=9;z--){
-    const tl=toTileXY(maxLat,minLon,z), br=toTileXY(minLat,maxLon,z);
-    if(br.tx-tl.tx+1<=8 && br.ty-tl.ty+1<=8){zoom=z;break;}
-  }
-  const tl=toTileXY(maxLat,minLon,zoom), br=toTileXY(minLat,maxLon,zoom);
-  let x0=Math.floor(tl.tx), y0=Math.floor(tl.ty);
-  let x1=Math.floor(br.tx), y1=Math.floor(br.ty);
-  let tw=x1-x0+1, th=y1-y0+1;
-
-  // Expand the tile grid to match the output canvas aspect ratio so there
-  // are no letterbox gaps — add rows or columns symmetrically as needed.
-  const targetAR=pxW/pxH;
-  if(tw/th<targetAR){
-    const newTw=Math.ceil(th*targetAR);
-    const extra=newTw-tw;
-    x0-=Math.floor(extra/2); x1=x0+newTw-1; tw=newTw;
-  } else {
-    const newTh=Math.ceil(tw/targetAR);
-    const extra=newTh-th;
-    y0-=Math.floor(extra/2); y1=y0+newTh-1; th=newTh;
-  }
-
-  // Tile canvas
-  const tc=document.createElement('canvas');
-  tc.width=tw*TILE; tc.height=th*TILE;
-  const tcx=tc.getContext('2d');
-
-  // Load tiles in parallel (8 s timeout)
-  const loads=[];
-  for(let tx=x0;tx<=x1;tx++) for(let ty=y0;ty<=y1;ty++){
-    const sub=['a','b','c'][(tx+ty)%3];
-    loads.push(new Promise(res=>{
-      const img=new Image(); img.crossOrigin='anonymous';
-      img.onload=()=>{tcx.drawImage(img,(tx-x0)*TILE,(ty-y0)*TILE);res();};
-      img.onerror=()=>res();
-      img.src=`https://${sub}.tile.openstreetmap.org/${zoom}/${tx}/${ty}.png`;
-    }));
-  }
-  await Promise.race([Promise.all(loads),new Promise(r=>setTimeout(r,8000))]);
-
-  // Output canvas — cover-fit: tile grid was expanded to match output AR so
-  // geography fills edge-to-edge; any sub-tile overshoot is clipped by the canvas.
-  const oc=document.createElement('canvas'); oc.width=pxW; oc.height=pxH;
-  const octx=oc.getContext('2d');
-  octx.imageSmoothingEnabled=true; octx.imageSmoothingQuality='high';
-  const tscale=Math.max(pxW/tc.width, pxH/tc.height);
-  const tdx=(pxW-tc.width*tscale)/2, tdy=(pxH-tc.height*tscale)/2;
-  octx.drawImage(tc,0,0,tc.width,tc.height, tdx,tdy, tc.width*tscale,tc.height*tscale);
-
-  // Project lat/lon → output canvas pixels (uniform tile scale avoids squish)
-  function proj(lat,lon){
-    const {tx,ty}=toTileXY(lat,lon,zoom);
-    return{x:tdx+(tx-x0)*TILE*tscale, y:tdy+(ty-y0)*TILE*tscale};
-  }
-
-  // Route lines
-  const[cr,cg,cb]=p.color.match(/[\da-f]{2}/gi).map(h=>parseInt(h,16));
-  octx.lineJoin='round'; octx.lineCap='round';
-  if(p.polyline&&p.polyline.length>1){
-    octx.strokeStyle=p.color; octx.lineWidth=Math.max(2,pxW/200);
-    const step=Math.max(1,Math.floor(p.polyline.length/400));
-    octx.beginPath();
-    let first=true;
-    for(let i=0;i<p.polyline.length;i+=step){
-      const{x,y}=proj(p.polyline[i][0],p.polyline[i][1]);
-      first?(octx.moveTo(x,y),first=false):octx.lineTo(x,y);
-    }
-    octx.stroke();
-  } else {
-    octx.strokeStyle=p.color; octx.lineWidth=Math.max(1.5,pxW/280);
-    octx.setLineDash([8,5]);
-    const pts=[];
-    if(p.home) pts.push(proj(p.home.lat,p.home.lon));
-    for(const j of stopPts) pts.push(proj(j.lat,j.lon));
-    if(p.home) pts.push(proj(p.home.lat,p.home.lon));
-    for(let i=1;i<pts.length;i++){octx.beginPath();octx.moveTo(pts[i-1].x,pts[i-1].y);octx.lineTo(pts[i].x,pts[i].y);octx.stroke();}
-    octx.setLineDash([]);
-  }
-
-  // Stop circles
-  const R=Math.max(9,pxW/80);
-  for(const j of stopPts){
-    const{x,y}=proj(j.lat,j.lon);
-    octx.beginPath(); octx.arc(x,y,R,0,Math.PI*2);
-    octx.fillStyle=p.color; octx.strokeStyle='#fff'; octx.lineWidth=2;
-    octx.fill(); octx.stroke();
-    octx.fillStyle='#fff'; octx.font=`bold ${Math.round(R*1.1)}px sans-serif`;
-    octx.textAlign='center'; octx.textBaseline='middle';
-    octx.fillText(String(j.stopNum),x,y+1);
-  }
-
-  // Home square
-  if(p.home){
-    const{x,y}=proj(p.home.lat,p.home.lon);
-    const hs=R;
-    octx.fillStyle='#2a2a2a';
-    octx.beginPath();octx.moveTo(x,y-hs*1.2);octx.lineTo(x-hs,y-hs*0.1);octx.lineTo(x+hs,y-hs*0.1);octx.closePath();octx.fill();
-    octx.beginPath();octx.rect(x-hs*0.78,y-hs*0.1,hs*1.56,hs*1.1);octx.fill();
-    octx.fillStyle='#fff';
-    octx.beginPath();octx.rect(x-hs*0.25,y+hs*0.2,hs*0.5,hs*0.9);octx.fill();
-  }
-
-  return oc.toDataURL('image/jpeg',0.95);
 }
 
 /* ============================================================
@@ -6128,7 +5711,7 @@ function renderCrews(){
   hdr.style.color='var(--muted)';
   hdr.style.textTransform='uppercase';
   hdr.style.letterSpacing='.06em';
-  hdr.innerHTML=`<div></div><div>on</div><div>color</div><div>name</div><div>home address</div><div>avg min/task</div><div title="vs baseline">vs base</div><div>shift min</div><div title="Sage Servicer_Id written on Export to Sage and used as the Route4Me Route ID. Empty = this crew's rows are dropped from the Sage export.">field #</div><div>status</div><div title="print this crew's route card PDF">print</div><div></div>`;
+  hdr.innerHTML=`<div></div><div>on</div><div>color</div><div>name</div><div>home address</div><div>avg min/task</div><div title="vs baseline">vs base</div><div>shift min</div><div title="Sage Servicer_Id written on Export to Sage and used as the Route4Me Route ID. Empty = this crew's rows are dropped from the Sage export.">field #</div><div>status</div><div></div>`;
   wrap.appendChild(hdr);
 
   if(!DB.crews.length){
@@ -6147,7 +5730,6 @@ function renderCrews(){
     const speedPct=crewSpeedPct(c);
     const speedCls=speedPct>=120?'slow':speedPct<=85?'fast':'';
     const cColor=crewColor(c.id);
-    const routeJobCount=DB.jobs.filter(j=>j.crew===c.id&&j.lat!=null).length;
     card.innerHTML=`
       <div class="crew-drag-handle" title="drag to reorder">⠿</div>
       <div class="crew-toggle ${c.active?'on':''}" data-id="${c.id}" title="active"></div>
@@ -6163,9 +5745,6 @@ function renderCrews(){
           ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>geocoded</span>'
           : '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>needs address</span>'}
       </div>
-      <button class="crew-print-btn" data-print-route="${c.id}"${routeJobCount?'':' disabled'} title="${routeJobCount?`print route card — ${routeJobCount} job${routeJobCount===1?'':'s'}`:'no geocoded jobs assigned'}">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-      </button>
       <button class="btn-ghost job-x" data-del="${c.id}" title="delete">×</button>
     `;
     // crew reorder drag
@@ -6258,10 +5837,6 @@ function renderCrews(){
       }
     });
   });
-  wrap.querySelectorAll('[data-print-route]').forEach(el=>{
-    el.addEventListener('click',()=>printCrewRoute(el.dataset.printRoute));
-  });
-
   wrap.querySelectorAll('[data-del]').forEach(el=>{
     el.addEventListener('click',async()=>{
       const c=DB.crews.find(x=>x.id===el.dataset.del);
@@ -6308,8 +5883,6 @@ function renderSettings(){
   $('#setBigSubThreshold').value=DB.settings.bigSubThreshold||15;
   $('#setFuzzyThreshold').value=DB.settings.fuzzyThreshold!=null?DB.settings.fuzzyThreshold:0.80;
   $('#setRoutingMode').checked=DB.settings.routingMode==='priority';
-  $('#setRouteCardPDF').checked=DB.settings.routeCardPDF!==false;
-  $('#setR4mExport').checked=DB.settings.r4mExport!==false;
   $('#setR4mDepots').checked=DB.settings.r4mDepots!==false;
   $('#setProxyUrl').value=DB.settings.proxyUrl;
   renderTaskTypes();
@@ -6458,8 +6031,6 @@ function saveAlgoSettings(){
   const th=parseFloat($('#setFuzzyThreshold').value);
   DB.settings.fuzzyThreshold=(Number.isFinite(th)&&th>=0&&th<=1)?th:0.80;
   DB.settings.routingMode=$('#setRoutingMode').checked?'priority':'classic';
-  DB.settings.routeCardPDF=$('#setRouteCardPDF').checked;
-  DB.settings.r4mExport=$('#setR4mExport').checked;
   DB.settings.r4mDepots=$('#setR4mDepots').checked;
   save(true);toast('saved');
   renderRun();
