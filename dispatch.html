@@ -4918,11 +4918,10 @@ const R4M_COLUMNS = [
   {h:'Alias',             v:x=>x.alias},
   {h:'Latitude',          v:x=>x.lat},
   {h:'Longitude',         v:x=>x.lon},
-  {h:'Svc Job Num',       v:x=>x.kind==='job' ? x.svcJobNum : ''},   // join key back to Sage; blank on depots
-  {h:'Scheduled For',     v:x=>x.kind==='job' ? x.schedFor : ''},
   {h:'Service Time',      v:x=>x.kind==='job' ? x.serviceMin : ''},  // on-site minutes from the task type's base minutes
   {h:'Priority',          v:x=>x.kind==='job' ? x.prio : ''},
   {h:'Color',             v:x=>x.kind==='job' ? x.color : ''},
+  {h:'Sequence No',       v:x=>x.kind==='job' ? x.seq : ''},         // 1-based stop order within the crew's route, as the board has it
   {h:'Original Route ID', v:x=>x.routeId},
   {h:'Route Name',        v:x=>x.crewName},                           // label only — Route4Me does not assign by it
   {h:'Depot',             v:x=>x.kind==='depot' ? '1' : ''},
@@ -5052,7 +5051,7 @@ function buildRoute4MeUpload(){
       else if(task && !byName[_r4mKey(task)]) stats.prioUnmapped.set(task,(stats.prioUnmapped.get(task)||0)+1);
       const tt = getTaskType(j.type);
       const serviceMin = tt && isFinite(+tt.baseMin) ? String(+tt.baseMin) : '';
-      out.push({kind:'job', alias, lat:_r4mCoord(j.lat), lon:_r4mCoord(j.lon), svcJobNum, schedFor, serviceMin, prio, color, routeId, crewName});
+      out.push({kind:'job', alias, lat:_r4mCoord(j.lat), lon:_r4mCoord(j.lon), svcJobNum, schedFor, serviceMin, prio, color, seq:String(out.length+1), routeId, crewName});
       stats.jobs++;
     }
     if(!out.length) continue;
@@ -5061,7 +5060,7 @@ function buildRoute4MeUpload(){
       if(c.lat==null || c.lon==null){ stats.noHome.push(c.name); }
       else{
         out.push({kind:'depot', alias:`${crewName} Home`, lat:_r4mCoord(c.lat), lon:_r4mCoord(c.lon),
-          svcJobNum:'', schedFor:'', serviceMin:'', prio:'', color:'', routeId, crewName});
+          svcJobNum:'', schedFor:'', serviceMin:'', prio:'', color:'', seq:'', routeId, crewName});
         stats.depots++;
       }
     }
