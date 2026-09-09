@@ -962,6 +962,23 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
               </div>
             </div>
 
+            <div class="card" style="grid-column:1/-1">
+              <h3><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>route4me priority</h3>
+              <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:8px">One row per Sage task name. A stop takes the hottest (lowest) number its two clocks offer: how close Schedule_Date is to the dispatch date, and how long ago it was received. Blank = no contribution. A task with no row goes to Route4Me with a blank Priority.</div>
+              <div id="r4mPrioLadder" style="display:flex;gap:2px;margin-bottom:8px;border-radius:4px;overflow:hidden"></div>
+              <div id="r4mPrioList" style="overflow-x:auto"></div>
+              <div class="btn-row" style="margin-top:10px;align-items:center;flex-wrap:wrap">
+                <input type="text" id="r4mPrioNew" placeholder="sage task name (e.g. FORM SURVEY)" style="flex:1;min-width:180px">
+                <button class="btn" onclick="r4mPrioAdd()">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  add
+                </button>
+                <span style="font-size:11px;color:var(--muted);margin-left:auto">rush code <b>R</b> →</span>
+                <input type="number" id="r4mRushValue" min="1" style="width:56px" title="Priority written when Sage's Priority column is R">
+                <button class="btn btn-ghost" onclick="r4mPrioReset()" title="restore the standard task rows">reset</button>
+              </div>
+            </div>
+
             <div class="card">
               <h3><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>system</h3>
               <div class="field"><label>proxy url</label></div>
@@ -1288,6 +1305,7 @@ const DEFAULT_DB = {
     routeCardPDF:false, // generate and download route card PDFs on export
     r4mExport:true,     // also write the Route4Me upload (file02) on Export to Sage
     r4mDepots:true,     // append one Depot row per exported crew (real home coords)
+    r4mPriority:null,   // {tasks:[{name,due:[4],recv:[4]}], codes:{R:'1'}} — null = R4M_TASK_DEFAULT
     dispatchDate:'',  // date jobs will be in field — set at import time
     startTime:'06:30' // crews leave home at this time — drives the workspace timeline
   }
@@ -4897,19 +4915,88 @@ function _todayStamp(){
  * {h: header text, v: (ctx) => cell}. ctx.kind is 'job' or 'depot'.
  */
 const R4M_COLUMNS = [
-  {h:'Alias',          v:x=>x.alias},
-  {h:'Latitude',       v:x=>x.lat},
-  {h:'Longitude',      v:x=>x.lon},
-  {h:'Svc Job Num',    v:x=>x.kind==='job' ? x.svcJobNum : ''},      // join key back to Sage; blank keeps depots out of any reverse trip
-  {h:'Scheduled For',  v:x=>x.schedFor},
-  {h:'Service Time',   v:x=>x.kind==='job' ? x.serviceMin : ''},
-  {h:'Route ID',       v:x=>x.routeId},
-  {h:'Route Name',     v:x=>x.crewName},                              // label only — Route4Me does not assign by it
-  {h:'Depot',          v:x=>x.kind==='depot' ? '1' : ''},
+  {h:'Alias',             v:x=>x.alias},
+  {h:'Latitude',          v:x=>x.lat},
+  {h:'Longitude',         v:x=>x.lon},
+  {h:'Svc Job Num',       v:x=>x.kind==='job' ? x.svcJobNum : ''},   // join key back to Sage; blank on depots
+  {h:'Scheduled For',     v:x=>x.kind==='job' ? x.schedFor : ''},
+  {h:'Service Time',      v:x=>x.kind==='job' ? x.serviceMin : ''},  // on-site minutes from the task type's base minutes
+  {h:'Priority',          v:x=>x.kind==='job' ? x.prio : ''},
+  {h:'Color',             v:x=>x.kind==='job' ? x.color : ''},
+  {h:'Original Route ID', v:x=>x.routeId},
+  {h:'Route Name',        v:x=>x.crewName},                           // label only — Route4Me does not assign by it
+  {h:'Depot',             v:x=>x.kind==='depot' ? '1' : ''},
 ];
+
+/* ---- Priority: two clocks per Sage task name ----
+   Every Sage task name has a row: priority by how close Schedule_Date is
+   to the route day (due[4]: late / due that day / 1 day before / 2+ before)
+   and by how old the job is (recv[4]: received day / +1 / +2 / +3 or more).
+   A job takes the HOTTEST (lowest) value the two clocks offer; a blank
+   bucket contributes nothing; a task with no row gets a blank Priority —
+   Sage's own numbers are never passed through. Sage Priority "R" (rush)
+   maps through codes, default 1, over everything. Colour is a heat fade
+   from the priority number, bare hex as Route4Me wants it. */
+const R4M_PRIO_DUE  = ['late','due that day','1 day before','2+ before'];
+const R4M_PRIO_RECV = ['received day','+1 day','+2 days','+3 or more'];
+const R4M_TASK_DEFAULT = [
+  {name:'ENV W\\ELEV STK', due:['10','15','',''],     recv:['','','','']},
+  {name:'GRADE STAKING',   due:['10','15','',''],     recv:['','','','']},
+  {name:'RE-GRADE STAKE',  due:['10','15','',''],     recv:['','','','']},
+  {name:'FORM SURVEY',     due:['10','10','15','40'], recv:['','','','']},
+  {name:'SIGNED SLAB SVY', due:['20','15','15',''],   recv:['50','50','40','30']},
+  {name:'FINAL SVY SWALE', due:['20','15','30',''],   recv:['60','60','60','50']},
+];
+function _r4mNormTask(t){
+  const o={name:String((t&&t.name)||'').trim(), due:['','','',''], recv:['','','','']};
+  for(const k of ['due','recv']) for(let i=0;i<4;i++){
+    const v=t&&Array.isArray(t[k])?t[k][i]:''; o[k][i]=v==null?'':String(v).trim();
+  }
+  return o;
+}
+function r4mPriorityMatrix(){
+  let m=DB.settings.r4mPriority;
+  if(!m||!Array.isArray(m.tasks)) m={tasks:structuredClone(R4M_TASK_DEFAULT), codes:{R:'1'}};
+  m.tasks=m.tasks.map(_r4mNormTask).filter(t=>t.name);
+  if(!m.codes||typeof m.codes!=='object') m.codes={R:'1'};
+  return m;
+}
+const _r4mKey = s => String(s==null?'':s).toUpperCase().replace(/\s+/g,' ').trim();
+function r4mPrioColor(n){
+  if(!isFinite(n)) return '';
+  return n<=10?'FF0000' : n<=15?'FF7A00' : n<=20?'FFB055'
+    : n<=30?'FFE000' : n<=40?'FFEB80' : n<=60?'FFF5C2' : 'FFFFFF';
+}
+// {v:'10', rush:false} or null for "no priority at all".
+function r4mPrioFor(task, sagePrio, dueDate, recvDate, routeDay, mx, byName){
+  const pc=_r4mKey(sagePrio);
+  if(pc && mx.codes[pc]!=null && mx.codes[pc]!=='') return {v:String(mx.codes[pc]), rush:true};
+  const t=byName[_r4mKey(task)];
+  if(!t) return null;
+  const dayMs=86400000;
+  const asDay=str=>{ const iso=_parseDate(str); return iso?new Date(iso+'T00:00:00'):null; };
+  const cand=[];
+  const dd=asDay(dueDate);
+  if(dd){
+    const d=Math.round((dd-routeDay)/dayMs);
+    const v=t.due[d<0?0:d===0?1:d===1?2:3];
+    if(v!==''&&isFinite(+v)) cand.push(+v);
+  }
+  const rd=asDay(recvDate);
+  if(rd){
+    const age=Math.round((routeDay-rd)/dayMs);
+    const v=t.recv[age<=0?0:age===1?1:age===2?2:3];
+    if(v!==''&&isFinite(+v)) cand.push(+v);
+  }
+  return cand.length?{v:String(Math.min(...cand)), rush:false}:null;
+}
+function _r4mRouteDay(){
+  const d=DB.settings.dispatchDate||'';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(d)) return new Date(d+'T00:00:00');
+  const n=new Date(); return new Date(n.getFullYear(),n.getMonth(),n.getDate());
+}
 function _r4mCell(v){
-  const t = String(v==null?'':v);
-  return /[",\n\r]/.test(t) ? '"'+t.replace(/"/g,'""')+'"' : t;
+  return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';
 }
 function _r4mCoord(v){
   if(v==null||v==='') return '';
@@ -4925,13 +5012,16 @@ function _r4mSchedFor(){
 /* Builds {rows, stats} without touching disk so the export and any later
    preview share one implementation. Jobs go crew by crew in board order. */
 function buildRoute4MeUpload(){
-  const svcByRow = new Map();
+  const rowByIdx = new Map();
   if(DB.sageImport && DB.sageImport.rows){
-    for(const row of DB.sageImport.rows) svcByRow.set(row.idx, row.fields.svcJobNum||'');
+    for(const row of DB.sageImport.rows) rowByIdx.set(row.idx, row);
   }
   const schedFor = _r4mSchedFor();
+  const routeDay = _r4mRouteDay();
+  const mx = r4mPriorityMatrix();
+  const byName = {}; for(const t of mx.tasks) byName[_r4mKey(t.name)] = t;
   const rows = [R4M_COLUMNS.map(c=>c.h)];
-  const stats = {jobs:0, crews:0, depots:0, noCoords:0, noHome:[], noField:[], missingSvc:0};
+  const stats = {jobs:0, crews:0, depots:0, noCoords:0, noHome:[], noField:[], missingSvc:0, prioApplied:0, rush:0, prioUnmapped:new Map()};
   const aliasCount = new Map();
   const crewRows = [];
   for(const c of DB.crews){
@@ -4947,13 +5037,22 @@ function buildRoute4MeUpload(){
     const out = [];
     for(const j of jobs){
       if(j.lat==null || j.lon==null){ stats.noCoords++; continue; }
-      const svcJobNum = (typeof j.sageRowIdx==='number') ? (svcByRow.get(j.sageRowIdx)||'') : '';
+      const row = (typeof j.sageRowIdx==='number') ? rowByIdx.get(j.sageRowIdx) : null;
+      const f = row ? row.fields : {};
+      const svcJobNum = f.svcJobNum || '';
       if(!svcJobNum) stats.missingSvc++;
-      const tt = getTaskType(j.type);
-      const alias = [String(j.type||'').trim(), String(j.sub||'').trim(), String(j.address||'').trim()].filter(Boolean).join(' - ');
+      // Alias carries Sage's own task wording ("FORM SURVEY"), the resolved
+      // library sub name (Sage truncates its own), and the address.
+      const task = f.task || j.type || '';
+      const alias = [String(task).trim(), String(j.sub||'').trim(), String(j.address||'').trim()].filter(Boolean).join(' - ');
       aliasCount.set(alias, (aliasCount.get(alias)||0)+1);
-      out.push({kind:'job', alias, lat:_r4mCoord(j.lat), lon:_r4mCoord(j.lon), svcJobNum, schedFor,
-        serviceMin: tt && isFinite(+tt.baseMin) ? String(+tt.baseMin) : '', routeId, crewName});
+      let prio='', color='';
+      const pv = r4mPrioFor(task, f.p!=null?f.p:j.priority, f.dueDate||j.dueDate, f.rdate||j.rdate, routeDay, mx, byName);
+      if(pv){ prio=pv.v; color=r4mPrioColor(+pv.v); stats.prioApplied++; if(pv.rush) stats.rush++; }
+      else if(task && !byName[_r4mKey(task)]) stats.prioUnmapped.set(task,(stats.prioUnmapped.get(task)||0)+1);
+      const tt = getTaskType(j.type);
+      const serviceMin = tt && isFinite(+tt.baseMin) ? String(+tt.baseMin) : '';
+      out.push({kind:'job', alias, lat:_r4mCoord(j.lat), lon:_r4mCoord(j.lon), svcJobNum, schedFor, serviceMin, prio, color, routeId, crewName});
       stats.jobs++;
     }
     if(!out.length) continue;
@@ -4962,7 +5061,7 @@ function buildRoute4MeUpload(){
       if(c.lat==null || c.lon==null){ stats.noHome.push(c.name); }
       else{
         out.push({kind:'depot', alias:`${crewName} Home`, lat:_r4mCoord(c.lat), lon:_r4mCoord(c.lon),
-          svcJobNum:'', schedFor, serviceMin:'', routeId, crewName});
+          svcJobNum:'', schedFor:'', serviceMin:'', prio:'', color:'', routeId, crewName});
         stats.depots++;
       }
     }
@@ -4998,6 +5097,11 @@ async function exportToRoute4Me(opts){
     for(const n of stats.noHome) rlog(`crew "${n}" has no home coordinates — no Depot row; Route4Me will start its route at the first stop`,'warn');
     for(const n of stats.noField) rlog(`crew "${n}" has no Sage Field # — Route ID uses the crew's internal id instead`,'warn');
     if(stats.missingSvc) rlog(`${stats.missingSvc} stop${stats.missingSvc===1?'':'s'} carry no Svc Job Num (not from a Sage CSV row)`,'warn');
+    rlog(`Route4Me priority: ${stats.prioApplied} of ${stats.jobs} stops${stats.rush?' ('+stats.rush+' rush)':''}; the rest go up blank`,'info');
+    if(stats.prioUnmapped.size){
+      const top=[...stats.prioUnmapped.entries()].sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,v])=>`"${k}" (${v})`).join(', ');
+      rlog(`tasks with no Route4Me priority row: ${top} — add them under Settings › Route4Me priority`,'warn');
+    }
     if(!opts.fromSageExport) toast(`Route4Me upload: ${stats.jobs} stops, ${stats.crews} routes`);
   }finally{
     _r4mBusy=false;
@@ -6419,7 +6523,66 @@ function renderSettings(){
   $('#setR4mDepots').checked=DB.settings.r4mDepots!==false;
   $('#setProxyUrl').value=DB.settings.proxyUrl;
   renderTaskTypes();
+  renderR4mPriority();
   populateSageTaskMapping();
+}
+
+/* ---------- ROUTE4ME PRIORITY MATRIX (settings) ---------- */
+function renderR4mPriority(){
+  const el=$('#r4mPrioList'); if(!el) return;
+  const mx=r4mPriorityMatrix();
+  DB.settings.r4mPriority=mx;
+  const ladder=$('#r4mPrioLadder');
+  if(ladder) ladder.innerHTML=[['10','1-10'],['15','11-15'],['20','16-20'],['30','21-30'],['40','31-40'],['60','41-60'],['99','61+']]
+    .map(([v,lbl])=>`<div style="flex:1;background:#${r4mPrioColor(+v)};padding:5px 2px;text-align:center;font-size:10px;color:${+v<=20?'#fff':'#333'};font-weight:600">${lbl}</div>`).join('');
+  const cols='minmax(150px,1.4fr) repeat(8,minmax(52px,1fr)) 20px';
+  const num=(ti,kind,i,v)=>`<input type="number" min="0" value="${esc(v)}" placeholder="—" data-r4m="${ti}|${kind}|${i}" class="num" style="width:100%;min-width:0;box-sizing:border-box;text-align:center">`;
+  let html=`<div style="display:grid;grid-template-columns:${cols};gap:4px;font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600;padding:4px 4px;min-width:640px">
+    <div>task</div>${R4M_PRIO_DUE.map(b=>`<div style="text-align:center" title="by schedule date">${esc(b)}</div>`).join('')}${R4M_PRIO_RECV.map(b=>`<div style="text-align:center" title="by received date">${esc(b)}</div>`).join('')}<div></div></div>`;
+  html+=`<div style="display:grid;grid-template-columns:${cols};gap:4px;font-size:9px;color:var(--muted);padding:0 4px 4px;min-width:640px"><div></div><div style="grid-column:2/6;text-align:center;border-bottom:1px solid var(--border)">schedule clock</div><div style="grid-column:6/10;text-align:center;border-bottom:1px solid var(--border)">received clock</div><div></div></div>`;
+  mx.tasks.forEach((t,ti)=>{
+    html+=`<div style="display:grid;grid-template-columns:${cols};gap:4px;align-items:center;padding:3px 4px;min-width:640px">
+      <input type="text" value="${esc(t.name)}" data-r4m-name="${ti}" style="width:100%;min-width:0;box-sizing:border-box;font-weight:600">
+      ${t.due.map((v,i)=>num(ti,'due',i,v)).join('')}${t.recv.map((v,i)=>num(ti,'recv',i,v)).join('')}
+      <button class="btn-ghost" data-r4m-del="${ti}" title="remove"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>`;
+  });
+  if(!mx.tasks.length) html+=`<div style="font-size:12px;color:var(--muted);padding:6px 4px">no task rows — every stop goes up with a blank Priority</div>`;
+  el.innerHTML=html;
+  const rush=$('#r4mRushValue'); if(rush) rush.value=mx.codes.R!=null?mx.codes.R:'';
+  el.querySelectorAll('input').forEach(inp=>inp.addEventListener('change',r4mPrioCommit));
+  el.querySelectorAll('[data-r4m-del]').forEach(b=>b.onclick=async()=>{
+    const t=mx.tasks[+b.dataset.r4mDel];
+    const ok=await dialog.confirm({title:'remove task row?',body:`"${t.name}" — its stops will go to Route4Me with a blank Priority.`,confirmLabel:'remove',danger:true});
+    if(!ok) return;
+    mx.tasks.splice(+b.dataset.r4mDel,1); save(); renderR4mPriority();
+  });
+  if(rush && !rush._wired){ rush._wired=true; rush.addEventListener('change',r4mPrioCommit); }
+}
+function r4mPrioCommit(){
+  const el=$('#r4mPrioList'); if(!el) return;
+  const mx=r4mPriorityMatrix();
+  el.querySelectorAll('[data-r4m-name]').forEach(inp=>{ const t=mx.tasks[+inp.dataset.r4mName]; if(t) t.name=inp.value.trim(); });
+  el.querySelectorAll('[data-r4m]').forEach(inp=>{ const [ti,kind,i]=inp.dataset.r4m.split('|'); const t=mx.tasks[+ti]; if(t) t[kind][+i]=inp.value.trim(); });
+  const rush=$('#r4mRushValue');
+  if(rush){ const v=rush.value.trim(); if(v) mx.codes.R=v; else delete mx.codes.R; }
+  mx.tasks=mx.tasks.filter(t=>t.name);
+  DB.settings.r4mPriority=mx; save();
+}
+function r4mPrioAdd(){
+  const inp=$('#r4mPrioNew'); const v=(inp.value||'').trim();
+  if(!v){ toast('type a sage task name',1); return; }
+  r4mPrioCommit();
+  const mx=r4mPriorityMatrix();
+  if(mx.tasks.some(t=>_r4mKey(t.name)===_r4mKey(v))){ toast('that task already has a row',1); return; }
+  mx.tasks.push(_r4mNormTask({name:v}));
+  DB.settings.r4mPriority=mx; save(); inp.value=''; renderR4mPriority();
+}
+async function r4mPrioReset(){
+  const ok=await dialog.confirm({title:'reset route4me priority?',body:'every task row goes back to the standard setup.\nyour priority numbers will be lost.',confirmLabel:'reset',danger:true});
+  if(!ok) return;
+  DB.settings.r4mPriority={tasks:structuredClone(R4M_TASK_DEFAULT), codes:{R:'1'}};
+  save(); renderR4mPriority();
 }
 
 /* ============================================================
