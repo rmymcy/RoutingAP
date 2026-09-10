@@ -867,6 +867,7 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
               <div class="field"><label>sub review threshold (0–1)</label><input type="number" id="setFuzzyThreshold" value="0.80" step="0.01" min="0" max="1" title="min fuzzy score to surface suggestions in the sub-name review queue"></div>
               <div class="field"><label>priority routing</label><input type="checkbox" id="setRoutingMode" title="order clusters by due-date urgency; rush stops anchor at route start"></div>
               <div class="field"><label>Route4Me depot rows</label><input type="checkbox" id="setR4mDepots" title="append one Depot row per crew at the crew's home coordinates"></div>
+              <div class="field"><label>Route4Me priority column</label><input type="checkbox" id="setR4mPriorityCol" title="write Priority and Color to the upload; off leaves both columns out so Route4Me sequences on distance alone"></div>
               <div class="hr"></div>
               <button class="btn btn-primary btn-block" onclick="saveAlgoSettings()">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
@@ -954,6 +955,7 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
             <div class="card" style="grid-column:1/-1">
               <h3><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>route4me priority</h3>
               <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:8px">One row per task type, the same list as task types above. A stop takes the hottest (lowest) number its two clocks offer: how close Schedule_Date is to the dispatch date, and how long ago it was received. Blank = no contribution. A type with all blanks goes to Route4Me with a blank Priority.</div>
+              <div id="r4mPrioOff" style="display:none;font-size:11.5px;font-weight:600;color:var(--amber);margin-bottom:8px">priority column is OFF — these numbers are kept but not written to the upload (algorithm › Route4Me priority column)</div>
               <div id="r4mPrioLadder" style="display:flex;gap:2px;margin-bottom:8px;border-radius:4px;overflow:hidden"></div>
               <div id="r4mPrioList" style="overflow-x:auto"></div>
               <div class="btn-row" style="margin-top:10px;align-items:center;flex-wrap:wrap">
@@ -1168,6 +1170,7 @@ const DEFAULT_DB = {
     sageTaskMapping:'',
     routingMode:'priority',
     r4mDepots:true,     // append one Depot row per exported crew (real home coords)
+    r4mPriorityCol:true, // write Priority + Color; off = omit both columns so Route4Me sequences on distance alone
     r4mRush:'1',        // Route4Me Priority written when Sage's Priority column is R
     dispatchDate:'',  // date jobs will be in field — set at import time
     startTime:'06:30' // crews leave home at this time — drives the workspace timeline
@@ -4780,8 +4783,8 @@ const R4M_COLUMNS = [
   {h:'Latitude',          v:x=>x.lat},
   {h:'Longitude',         v:x=>x.lon},
   {h:'Service Time',      v:x=>x.kind==='job' ? x.serviceMin : ''},  // on-site minutes from the task type's base minutes
-  {h:'Priority',          v:x=>x.kind==='job' ? x.prio : ''},
-  {h:'Color',             v:x=>x.kind==='job' ? x.color : ''},
+  {h:'Priority',          v:x=>x.kind==='job' ? x.prio : '',  optional:'r4mPriorityCol'},
+  {h:'Color',             v:x=>x.kind==='job' ? x.color : '', optional:'r4mPriorityCol'},
   {h:'Sequence No',       v:x=>x.kind==='job' ? x.seq : ''},         // 1-based stop order within the crew's route, as the board has it
   {h:'Original Route ID', v:x=>x.routeId},
   {h:'Route Name',        v:x=>x.crewName},                           // label only — Route4Me does not assign by it
@@ -4813,6 +4816,12 @@ function r4mPrioColor(n){
   if(!isFinite(n)) return '';
   return n<=10?'FF0000' : n<=15?'FF7A00' : n<=20?'FFB055'
     : n<=30?'FFE000' : n<=40?'FFEB80' : n<=60?'FFF5C2' : 'FFFFFF';
+}
+// The column plan for this export: optional columns drop out when their
+// setting is off (Priority + Color together — Route4Me then sequences on
+// distance alone instead of holding hot stops to the front).
+function r4mActiveColumns(){
+  return R4M_COLUMNS.filter(c=>!c.optional || DB.settings[c.optional]!==false);
 }
 // {v:'10', rush:false} or null for "no priority at all".
 function r4mPrioFor(task, sagePrio, dueDate, recvDate, routeDay, mx, byName){
@@ -4867,7 +4876,8 @@ function buildRoute4MeUpload(){
   const routeDay = _r4mRouteDay();
   const mx = r4mPriorityMatrix();
   const byName = {}; for(const t of mx.tasks) byName[_r4mKey(t.name)] = t;
-  const rows = [R4M_COLUMNS.map(c=>c.h)];
+  const cols = r4mActiveColumns();
+  const rows = [cols.map(c=>c.h)];
   const stats = {jobs:0, crews:0, depots:0, noCoords:0, noHome:[], noField:[], missingSvc:0, prioApplied:0, rush:0, prioUnmapped:new Map()};
   const aliasCount = new Map();
   const crewRows = [];
@@ -4922,7 +4932,7 @@ function buildRoute4MeUpload(){
     const n=(aliasSeen.get(x.alias)||0)+1; aliasSeen.set(x.alias,n);
     x.alias=`${x.alias} (${n})`;
   }
-  for(const list of crewRows) for(const x of list) rows.push(R4M_COLUMNS.map(c=>c.v(x)));
+  for(const list of crewRows) for(const x of list) rows.push(cols.map(c=>c.v(x)));
   return {rows, stats};
 }
 let _r4mBusy=false;
@@ -4943,8 +4953,9 @@ async function exportToRoute4Me(){
     for(const n of stats.noHome) rlog(`crew "${n}" has no home coordinates — no Depot row; Route4Me will start its route at the first stop`,'warn');
     for(const n of stats.noField) rlog(`crew "${n}" has no Sage Field # — Route ID uses the crew's internal id instead`,'warn');
     if(stats.missingSvc) rlog(`${stats.missingSvc} stop${stats.missingSvc===1?'':'s'} carry no Svc Job Num (not from a Sage CSV row)`,'warn');
-    rlog(`Route4Me priority: ${stats.prioApplied} of ${stats.jobs} stops${stats.rush?' ('+stats.rush+' rush)':''}; the rest go up blank`,'info');
-    if(stats.prioUnmapped.size){
+    if(DB.settings.r4mPriorityCol===false) rlog('Route4Me priority column is off — no Priority or Color written; Route4Me sequences on distance alone','info');
+    else rlog(`Route4Me priority: ${stats.prioApplied} of ${stats.jobs} stops${stats.rush?' ('+stats.rush+' rush)':''}; the rest go up blank`,'info');
+    if(DB.settings.r4mPriorityCol!==false && stats.prioUnmapped.size){
       const top=[...stats.prioUnmapped.entries()].sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,v])=>`"${k}" (${v})`).join(', ');
       rlog(`task types with no Route4Me priority row: ${top} — add the type under Settings › task types`,'warn');
     }
@@ -5885,6 +5896,7 @@ function renderSettings(){
   $('#setFuzzyThreshold').value=DB.settings.fuzzyThreshold!=null?DB.settings.fuzzyThreshold:0.80;
   $('#setRoutingMode').checked=DB.settings.routingMode==='priority';
   $('#setR4mDepots').checked=DB.settings.r4mDepots!==false;
+  $('#setR4mPriorityCol').checked=DB.settings.r4mPriorityCol!==false;
   $('#setProxyUrl').value=DB.settings.proxyUrl;
   renderTaskTypes();
   renderR4mPriority();
@@ -5898,6 +5910,7 @@ function renderSettings(){
 function renderR4mPriority(){
   const el=$('#r4mPrioList'); if(!el) return;
   const mx=r4mPriorityMatrix();
+  const off=$('#r4mPrioOff'); if(off) off.style.display=DB.settings.r4mPriorityCol===false?'':'none';
   const ladder=$('#r4mPrioLadder');
   if(ladder) ladder.innerHTML=[['10','1-10'],['15','11-15'],['20','16-20'],['30','21-30'],['40','31-40'],['60','41-60'],['99','61+']]
     .map(([v,lbl])=>`<div style="flex:1;background:#${r4mPrioColor(+v)};padding:5px 2px;text-align:center;font-size:10px;color:${+v<=20?'#fff':'#333'};font-weight:600">${lbl}</div>`).join('');
@@ -6021,6 +6034,8 @@ function saveAlgoSettings(){
   DB.settings.fuzzyThreshold=(Number.isFinite(th)&&th>=0&&th<=1)?th:0.80;
   DB.settings.routingMode=$('#setRoutingMode').checked?'priority':'classic';
   DB.settings.r4mDepots=$('#setR4mDepots').checked;
+  DB.settings.r4mPriorityCol=$('#setR4mPriorityCol').checked;
+  renderR4mPriority();
   save(true);toast('saved');
   renderRun();
   renderCrews();
