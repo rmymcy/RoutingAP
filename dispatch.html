@@ -742,14 +742,20 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
         <div class="sidebar-section">
           <div class="sidebar-title"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>export</div>
           <div class="btn-stack">
-            <button class="btn btn-primary btn-block" onclick="exportToSage()" title="Write the Sage CSV (each crew's Field # in Servicer_Id, unassigned rows dropped), the Route4Me upload, and the CFF requests">
+            <button class="btn btn-primary btn-block" onclick="exportToSage()" title="Write the Sage CSV (each crew's Field # in Servicer_Id, unassigned rows dropped), and the Route4Me upload">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
               export sage + route4me
             </button>
-            <button class="btn btn-block" onclick="openCffModal()" title="Show the CFF calc requests grouped by crew — copy or download">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-              cff requests
-            </button>
+            <div style="display:flex;gap:6px">
+              <button class="btn" style="flex:1" onclick="openCffModal()" title="Show the CFF calc requests grouped by crew">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                cff requests
+              </button>
+              <button class="btn" style="flex:1" onclick="cffCopyNow()" title="Copy the CFF calc requests to the clipboard without opening them">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                copy cff
+              </button>
+            </div>
           </div>
         </div>
 
@@ -777,13 +783,17 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
           unassign all
         </button>
         <div class="ws-topbar-sep"></div>
-        <button class="btn btn-sm" onclick="exportToSage()" title="Write the Sage CSV, the Route4Me upload and the CFF requests">
+        <button class="btn btn-sm" onclick="exportToSage()" title="Write the Sage CSV and the Route4Me upload">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
           export
         </button>
-        <button class="btn btn-sm" onclick="openCffModal()" title="Show the CFF calc requests — copy or download">
+        <button class="btn btn-sm" onclick="openCffModal()" title="Show the CFF calc requests">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
           cff
+        </button>
+        <button class="btn btn-sm" onclick="cffCopyNow()" title="Copy the CFF calc requests to the clipboard">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          copy cff
         </button>
         <div class="ws-topbar-sep"></div>
         <label class="ws-topbar-check"><input type="checkbox" id="mapShowUnassigned" checked> show unassigned</label>
@@ -1044,7 +1054,6 @@ path.ws-ants{stroke-dasharray:9 7 !important;animation:wsAnts .45s linear infini
       <pre id="cffPre" style="margin:0;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;font-size:12.5px;line-height:1.55;max-height:48vh;overflow:auto;white-space:pre-wrap"></pre>
     </div>
     <div class="modal-foot">
-      <button class="btn" id="cffDownload" onclick="cffDownload()" style="margin-right:auto">download .txt</button>
       <button class="btn btn-ghost" onclick="closeCffModal()">close</button>
       <button class="btn btn-primary" id="cffCopy" onclick="cffCopy()">copy</button>
     </div>
@@ -4573,7 +4582,7 @@ async function exportToSage(){
   // department owns them, and passing them through (even verbatim)
   // trips false errors in Sage's import validator. The operator's
   // tentative crew assignment for CFF jobs is collected separately
-  // into a companion "CFF <date>.txt" to send to the other department.
+  // as copyable text (the CFF requests button) for the other department.
   let assigned=0, skippedUnassigned=0, skippedNoField=0, flipped=0, cffPassed=0;
   const cffEntries=[];
   const seenMissing = new Set();
@@ -4634,23 +4643,15 @@ async function exportToSage(){
   const stamp = _exportDateStamp();
   const outName = `SAGE ${stamp}.csv`;
   saveExportFile(outName, new Blob([text], {type:'application/octet-stream'}));
-  // Companion CFF file — sent to the other department so they know which
-  // crew the operator has tentatively assigned each CFF job to. Only
-  // emitted when there's at least one CFF row with a crew + Field #.
-  if(cffEntries.length){
-    const cffText = buildCffText(cffEntries);
-    const cffName = `CFF ${stamp}.txt`;
-    saveExportFile(cffName, new Blob([cffText], {type:'text/plain'}));
-  }
-  rlog(`Sage export: ${assigned} assigned (${flipped} flipped OUT→IF), ${cffPassed} CFF dropped from CSV (companion file only), ${skippedUnassigned} skipped (unassigned/deleted)${skippedNoField?', '+skippedNoField+' skipped (no field#)':''} → ${outName}`, 'ok');
+  rlog(`Sage export: ${assigned} assigned (${flipped} flipped OUT→IF), ${cffPassed} CFF dropped from CSV (copy cff to send), ${skippedUnassigned} skipped (unassigned/deleted)${skippedNoField?', '+skippedNoField+' skipped (no field#)':''} → ${outName}`, 'ok');
   // Second file: the Route4Me upload, built from the same assignment.
   try{ await exportToRoute4Me(); }
   catch(e){ rlog('Route4Me upload failed: '+e.message,'err'); }
   if(cffEntries.length){
     const crewCount = new Set(cffEntries.map(e=>e.fieldNumber)).size;
-    rlog(`CFF companion file: ${cffEntries.length} assignment${cffEntries.length===1?'':'s'} across ${crewCount} crew${crewCount===1?'':'s'} → CFF ${stamp}.txt`, 'ok');
+    rlog(`CFF calc requests: ${cffEntries.length} assignment${cffEntries.length===1?'':'s'} across ${crewCount} crew${crewCount===1?'':'s'} — use "copy cff" to send them`, 'ok');
   }
-  toast(`exported ${assigned} rows${cffEntries.length?' + CFF report':''}`);
+  toast(`exported ${assigned} rows${cffEntries.length?' · '+cffEntries.length+' CFF to copy':''}`);
   // Auto-backup: every successful export also writes a full DB snapshot
   // next to it — the real insurance behind localStorage.
   try{
@@ -4739,22 +4740,31 @@ function openCffModal(){
     : 'no CFF rows are assigned to a crew with a Sage Field # yet.';
   $('#cffPre').textContent = text;
   $('#cffCopy').disabled = !entries.length;
-  $('#cffDownload').disabled = !entries.length;
   $('#cffBg').classList.add('on');
 }
 function closeCffModal(){ $('#cffBg').classList.remove('on'); }
-async function cffCopy(){
-  const text = $('#cffPre').textContent;
-  try{ await navigator.clipboard.writeText(text); toast('copied'); }
+async function _copyText(text, okMsg){
+  try{ await navigator.clipboard.writeText(text); toast(okMsg||'copied'); return true; }
   catch(e){
     const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta);
-    ta.select(); try{ document.execCommand('copy'); toast('copied'); }catch(e2){ toast('copy failed — select the text manually',1); }
+    ta.select(); let ok=false;
+    try{ ok=document.execCommand('copy'); }catch(e2){}
     ta.remove();
+    toast(ok?(okMsg||'copied'):'copy failed — open cff requests and select the text',1);
+    return ok;
   }
 }
-function cffDownload(){
-  const text = $('#cffPre').textContent;
-  saveExportFile(`CFF ${_exportDateStamp()}.txt`, new Blob([text], {type:'text/plain'}));
+function cffCopy(){ return _copyText($('#cffPre').textContent); }
+// One click from the toolbar: build the text and copy it without opening the modal.
+function cffCopyNow(){
+  if(!DB.sageImport || !DB.sageImport.rows || !DB.sageImport.rows.length){
+    toast('no sage csv loaded — import a sage csv first', 1);
+    return;
+  }
+  const entries = collectCffEntries();
+  if(!entries.length){ toast('no CFF rows are assigned to a crew with a Sage Field # yet', 1); return; }
+  const crews = new Set(entries.map(e=>e.fieldNumber)).size;
+  _copyText(buildCffText(entries), `copied ${entries.length} CFF request${entries.length===1?'':'s'} (${crews} crew${crews===1?'':'s'})`);
 }
 function _todayStamp(){
   const d=new Date();
@@ -6926,8 +6936,8 @@ function mountSubPicker(host, onPick){
 
 /* ---------- DATA MGMT ---------- */
 /* ============ EXPORT FOLDER (File System Access API) ============
-   Pick a folder once; every export (Sage CSV, CFF companion, route
-   card PDFs, backups) writes straight into it. Handle persists in
+   Pick a folder once; every export (Sage CSV, Route4Me upload, backup JSON)
+   writes straight into it. Handle persists in
    IndexedDB (localStorage can't hold one). Browsers without the API
    — Firefox/Safari — quietly keep using normal Downloads. */
 let _exportDirHandle=null;
