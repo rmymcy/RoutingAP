@@ -53,7 +53,7 @@ for (const r of rows) {
   if (result.fatal) { console.log('FATAL', result.fatal); process.exit(1); }
   console.log('jobs imported:', result.jobs, '· pending sub review:', result.pending);
   for (const l of logs) console.log(l);
-  const r4m = result.saved.find(f => /route4me/.test(f.name));
+  const r4m = result.saved.find(f => /^R4ME /.test(f.name));
   console.log('\n--- files:', result.saved.map(f => f.name).join(', '));
   // Compare on the columns both files share, by header name, order-insensitive
   // (the template lists jobs in file order, depots last). Columns only one side

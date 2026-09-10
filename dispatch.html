@@ -4573,7 +4573,7 @@ async function exportToSage(){
   // department owns them, and passing them through (even verbatim)
   // trips false errors in Sage's import validator. The operator's
   // tentative crew assignment for CFF jobs is collected separately
-  // into a companion <date>_CFF_FL.txt to send to the other department.
+  // into a companion "CFF <date>.txt" to send to the other department.
   let assigned=0, skippedUnassigned=0, skippedNoField=0, flipped=0, cffPassed=0;
   const cffEntries=[];
   const seenMissing = new Set();
@@ -4631,18 +4631,15 @@ async function exportToSage(){
     assigned++;
   }
   const text = outLines.join('\n') + '\n';
-  const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth()+1).padStart(2,'0');
-  const dd = String(d.getDate()).padStart(2,'0');
-  const outName = `${yyyy}-${mm}-${dd}_dispatch_FL.csv`;
+  const stamp = _exportDateStamp();
+  const outName = `SAGE ${stamp}.csv`;
   saveExportFile(outName, new Blob([text], {type:'application/octet-stream'}));
   // Companion CFF file — sent to the other department so they know which
   // crew the operator has tentatively assigned each CFF job to. Only
   // emitted when there's at least one CFF row with a crew + Field #.
   if(cffEntries.length){
     const cffText = buildCffText(cffEntries);
-    const cffName = `${yyyy}-${mm}-${dd}_CFF_FL.txt`;
+    const cffName = `CFF ${stamp}.txt`;
     saveExportFile(cffName, new Blob([cffText], {type:'text/plain'}));
   }
   rlog(`Sage export: ${assigned} assigned (${flipped} flipped OUT→IF), ${cffPassed} CFF dropped from CSV (companion file only), ${skippedUnassigned} skipped (unassigned/deleted)${skippedNoField?', '+skippedNoField+' skipped (no field#)':''} → ${outName}`, 'ok');
@@ -4651,7 +4648,7 @@ async function exportToSage(){
   catch(e){ rlog('Route4Me upload failed: '+e.message,'err'); }
   if(cffEntries.length){
     const crewCount = new Set(cffEntries.map(e=>e.fieldNumber)).size;
-    rlog(`CFF companion file: ${cffEntries.length} assignment${cffEntries.length===1?'':'s'} across ${crewCount} crew${crewCount===1?'':'s'} → ${yyyy}-${mm}-${dd}_CFF_FL.txt`, 'ok');
+    rlog(`CFF companion file: ${cffEntries.length} assignment${cffEntries.length===1?'':'s'} across ${crewCount} crew${crewCount===1?'':'s'} → CFF ${stamp}.txt`, 'ok');
   }
   toast(`exported ${assigned} rows${cffEntries.length?' + CFF report':''}`);
   // Auto-backup: every successful export also writes a full DB snapshot
@@ -4757,11 +4754,17 @@ async function cffCopy(){
 }
 function cffDownload(){
   const text = $('#cffPre').textContent;
-  saveExportFile(`${_todayStamp()}_CFF_FL.txt`, new Blob([text], {type:'text/plain'}));
+  saveExportFile(`CFF ${_exportDateStamp()}.txt`, new Blob([text], {type:'text/plain'}));
 }
 function _todayStamp(){
   const d=new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+// Export files are named for the day the dispatch is set for (import page),
+// falling back to today when no dispatch date has been set.
+function _exportDateStamp(){
+  const d=DB.settings.dispatchDate||'';
+  return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : _todayStamp();
 }
 
 /* ============================================================
@@ -4947,7 +4950,7 @@ async function exportToRoute4Me(){
       return;
     }
     const text = rows.map(r=>r.map(_r4mCell).join(',')).join('\r\n') + '\r\n';
-    const outName = `${_todayStamp()}_route4me_FL.csv`;
+    const outName = `R4ME ${_exportDateStamp()}.csv`;
     await saveExportFile(outName, new Blob([text], {type:'text/csv'}));
     rlog(`Route4Me upload: ${stats.jobs} stop${stats.jobs===1?'':'s'} on ${stats.crews} route${stats.crews===1?'':'s'}, ${stats.depots} depot${stats.depots===1?'':'s'}${stats.noCoords?', '+stats.noCoords+' skipped (no coordinates)':''} → ${outName}`,'ok');
     for(const n of stats.noHome) rlog(`crew "${n}" has no home coordinates — no Depot row; Route4Me will start its route at the first stop`,'warn');
