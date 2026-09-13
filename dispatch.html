@@ -1361,11 +1361,12 @@ function crewSpeedFactor(crew){
 function crewSpeedPct(crew){
   return Math.round(crewSpeedFactor(crew)*100);
 }
+// MUP / townhome flag: per-unit time at multi-unit plots is faster than a
+// standalone home. Shared by the board, the timeline and the Route4Me export.
+const MUP_DIVISOR = 2.5;
 function adjustedJobMin(job,crew){
   const t=getTaskType(job.type);
-  // MUP / townhome flag: per-unit time at multi-unit plots is faster
-  // than a standalone home, so divide by 2.5 to reflect the reality.
-  const divisor = job.townhome ? 2.5 : 1;
+  const divisor = job.townhome ? MUP_DIVISOR : 1;
   return Math.round(t.baseMin*crewSpeedFactor(crew)/divisor);
 }
 /* Returns an array of per-leg drive minutes for a crew's route including:
@@ -4891,7 +4892,7 @@ function buildRoute4MeUpload(){
   const byName = {}; for(const t of mx.tasks) byName[_r4mKey(t.name)] = t;
   const cols = r4mActiveColumns();
   const rows = [cols.map(c=>c.h)];
-  const stats = {jobs:0, crews:0, depots:0, noCoords:0, noHome:[], noField:[], missingSvc:0, prioApplied:0, rush:0, prioUnmapped:new Map()};
+  const stats = {jobs:0, crews:0, depots:0, noCoords:0, noHome:[], noField:[], missingSvc:0, mup:0, prioApplied:0, rush:0, prioUnmapped:new Map()};
   const aliasCount = new Map();
   const crewRows = [];
   for(const c of DB.crews){
@@ -4920,8 +4921,15 @@ function buildRoute4MeUpload(){
       const pv = r4mPrioFor(j.type, f.p!=null?f.p:j.priority, f.dueDate||j.dueDate, f.rdate||j.rdate, routeDay, mx, byName);
       if(pv){ prio=pv.v; color=r4mPrioColor(+pv.v); stats.prioApplied++; if(pv.rush) stats.rush++; }
       else if(j.type && !byName[_r4mKey(j.type)]) stats.prioUnmapped.set(j.type,(stats.prioUnmapped.get(j.type)||0)+1);
+      // On-site minutes: the task type's base, divided by the MUP factor for
+      // a flagged job (per-unit work at a multi-unit plot is faster). The
+      // crew's speed factor is deliberately left out — Service Time describes
+      // the work, not who is doing it.
       const tt = getTaskType(j.type);
-      const serviceMin = tt && isFinite(+tt.baseMin) ? String(+tt.baseMin) : '';
+      const serviceMin = tt && isFinite(+tt.baseMin)
+        ? String(Math.max(1, Math.round(+tt.baseMin / (j.townhome ? MUP_DIVISOR : 1))))
+        : '';
+      if(j.townhome) stats.mup++;
       out.push({kind:'job', alias, lat:_r4mCoord(j.lat), lon:_r4mCoord(j.lon), svcJobNum, schedFor, serviceMin, prio, color, seq:String(out.length+1), routeId, crewName});
       stats.jobs++;
     }
@@ -4966,6 +4974,7 @@ async function exportToRoute4Me(){
     for(const n of stats.noHome) rlog(`crew "${n}" has no home coordinates — no Depot row; Route4Me will start its route at the first stop`,'warn');
     for(const n of stats.noField) rlog(`crew "${n}" has no Sage Field # — Route ID uses the crew's internal id instead`,'warn');
     if(stats.missingSvc) rlog(`${stats.missingSvc} stop${stats.missingSvc===1?'':'s'} carry no Svc Job Num (not from a Sage CSV row)`,'warn');
+    if(stats.mup) rlog(`Route4Me service time: ${stats.mup} MUP stop${stats.mup===1?'':'s'} sent at 1/${MUP_DIVISOR} of their task's base minutes`,'info');
     if(DB.settings.r4mPriorityCol===false) rlog('Route4Me priority column is off — no Priority or Color written; Route4Me sequences on distance alone','info');
     else rlog(`Route4Me priority: ${stats.prioApplied} of ${stats.jobs} stops${stats.rush?' ('+stats.rush+' rush)':''}; the rest go up blank`,'info');
     if(DB.settings.r4mPriorityCol!==false && stats.prioUnmapped.size){
