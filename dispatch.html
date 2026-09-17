@@ -4393,19 +4393,22 @@ function parseSageCSVText(text){
   if(!hasDate || !hasServicer || !hasSub){
     throw new Error('CSV does not look like a Sage export — header missing date / servicer / sub columns');
   }
-  const rows=[]; const records=[]; let skipped=0;
+  const rows=[]; const records=[]; let skipped=0; let extraCols=0;
   for(let i=headerIdx+1;i<lines.length;i++){
     const raw = lines[i];
     if(!raw.trim()) continue;
     const parts = tokenizeCsvLine(raw);
-    if(parts.length !== SAGE_CSV_FIELDS.length && parts.length !== SAGE_CSV_FIELDS_EXT.length){
+    // Sage has grown trailing columns over time (BuildType is the latest).
+    // Everything the tool needs sits in the first 13 or 15 positions, so read
+    // those by position and ignore whatever follows. The untouched raw line is
+    // still what the export writes back, so the extra columns survive the
+    // round-trip even though nothing here reads them.
+    if(parts.length < SAGE_CSV_FIELDS.length){
       skipped++;
-      const why = parts.length < SAGE_CSV_FIELDS.length
-        ? `only ${parts.length} columns`
-        : `${parts.length} columns (expected ${SAGE_CSV_FIELDS.length} or ${SAGE_CSV_FIELDS_EXT.length})`;
-      ilog(`[CSV row ${i+1}] ${why}, skipped`,'warn');
+      ilog(`[CSV row ${i+1}] only ${parts.length} columns, expected at least ${SAGE_CSV_FIELDS.length} — skipped`,'warn');
       continue;
     }
+    if(parts.length > SAGE_CSV_FIELDS_EXT.length) extraCols = Math.max(extraCols, parts.length - SAGE_CSV_FIELDS_EXT.length);
     const fields={};
     const fieldNames = parts.length >= SAGE_CSV_FIELDS_EXT.length ? SAGE_CSV_FIELDS_EXT : SAGE_CSV_FIELDS;
     fieldNames.forEach((k,fi)=>{
@@ -4437,6 +4440,11 @@ function parseSageCSVText(text){
       titled: !!(fields.titled||'').trim().toLowerCase().startsWith('y'),
       _sageRowIdx: idx
     });
+  }
+  if(extraCols){
+    const names = tokenizeCsvLine(headerLine).slice(SAGE_CSV_FIELDS_EXT.length)
+      .map(c=>c.replace(/^"([\s\S]*)"$/,'$1').trim()).filter(Boolean).join(', ');
+    ilog(`ignoring ${extraCols} trailing column${extraCols===1?'':'s'}${names?' ('+names+')':''} — kept in the row for the Sage export`,'info');
   }
   return {headerLine, rows, records, skipped};
 }
